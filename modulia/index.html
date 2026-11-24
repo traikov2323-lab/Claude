@@ -548,6 +548,13 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   .boardwrap { justify-content: flex-start; }
 }
 
+.styles { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.stylec { border: 0; padding: 0; overflow: hidden; text-align: left; display: flex; flex-direction: column; color: inherit; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; }
+.stylec:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.stylec .simg { display: block; aspect-ratio: 42 / 30; background: var(--fill); }
+.stylec .simg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.stylec .smeta { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 12px; }
+@media (max-width: 640px) { .styles { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -777,7 +784,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
           <label class="switch">Съдомиялна 60 см<input type="checkbox" id="optDw"></label>
           <label class="switch">Горни шкафове<input type="checkbox" id="optUppers"></label>
           <div class="grid2">
-            <div class="field"><label for="optWallH">Височина горни</label><select id="optWallH"><option value="720">720 мм</option><option value="900">900 мм</option></select></div>
+            <div class="field"><label for="optWallH">Височина горни</label><select id="optWallH"><option value="720">720 мм</option><option value="900">900 мм</option><option value="ceil">До тавана</option></select></div>
             <div class="field"><label for="optUpperBottom">Долен ръб горни</label><select id="optUpperBottom"><option value="1400">1400 мм</option><option value="1440">1440 мм</option><option value="1500">1500 мм</option></select></div>
           </div>
           <label class="switch">Автоматично подреждане<input type="checkbox" id="optAuto"></label>

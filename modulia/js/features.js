@@ -193,9 +193,9 @@
     };
     const matShort = (p) => {
       if (p.mat === 'hdf') return 'HDF 3 мм';
-      const ft = M.frontType(S.project.mats.frontType);
-      if (p.mat === 'front' && ft.painted) return 'МДФ ' + M.paint(S.project.mats.frontColor).name;
-      const b = M.board(p.mat === 'front' ? S.project.mats.frontDecor : S.project.mats.carcass);
+      const zm = M.zone(S.project.mats, p.zone);
+      if (p.mat === 'front' && M.frontType(zm.frontType).painted) return 'МДФ ' + M.frontName(S.project.mats, p.zone);
+      const b = M.board(p.mat === 'front' ? zm.frontDecor : S.project.mats.carcass);
       return b.brand + ' ' + b.name.split(' ')[0];
     };
     return `<div>${pages
@@ -966,7 +966,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       city: $('#rqCity').value,
       note: $('#rqNote').value.trim().slice(0, 600),
       total: Math.round(S.pr.gross * 100) / 100,
-      summary: `${P.room.shape === 'L' ? 'Г-образна' : 'Права'} · A ${P.room.wallA}${P.room.shape === 'L' ? ' · B ' + P.room.wallB : ''} мм · ${P.modules.filter((x) => x.type !== 'gap').length} модула · ${M.board(m.carcass).brand} ${M.board(m.carcass).name} · ${ft.painted ? M.paint(m.frontColor).name + ' ' + (ft.gloss ? 'гланц' : 'мат') : M.board(m.frontDecor).name} · ${m.hardware.toUpperCase()}`,
+      summary: `${P.room.shape === 'L' ? 'Г-образна' : 'Права'} · A ${P.room.wallA}${P.room.shape === 'L' ? ' · B ' + P.room.wallB : ''} мм · ${P.modules.filter((x) => x.type !== 'gap').length} модула · ${M.board(m.carcass).brand} ${M.board(m.carcass).name} · ${M.frontsSummary(m)} · ${m.hardware.toUpperCase()}`,
       project: JSON.stringify(P),
       status: 'нова',
       createdAt: new Date().toISOString(),

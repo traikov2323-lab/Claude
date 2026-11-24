@@ -283,7 +283,7 @@
     opt('#optOvenTall', 'ovenTall');
     opt('#optDw', 'dishwasher');
     opt('#optUppers', 'uppers');
-    opt('#optWallH', 'wallH', Number);
+    opt('#optWallH', 'wallH', (v) => (v === 'ceil' ? 'ceil' : Number(v)));
     opt('#optUpperBottom', 'upperBottom', Number);
     $('#optAuto').addEventListener('change', (e) => {
       S.project.auto = e.target.checked;
@@ -734,7 +734,7 @@
     const m = P.mats;
     const b = M.board(m.carcass);
     const ft = M.frontType(m.frontType);
-    const front = ft.painted ? `${ft.name}, ${M.paint(m.frontColor).name}` : `${ft.name}, ${M.board(m.frontDecor).brand} ${M.board(m.frontDecor).name}`;
+    const front = M.frontsSummary(m);
     const hwb = M.CATALOG.hardwareBrands.find((h) => h.key === m.hardware);
     const no = 'О-' + new Date().getFullYear() + '-' + P.id.slice(-4);
     const date = new Date().toLocaleDateString('bg-BG');
@@ -791,7 +791,7 @@
     const ft = M.frontType(m.frontType);
     $('#reqSummary').innerHTML = `${S.shot ? `<img src="${S.shot}" alt="Твоята кухня" style="width:100%;border-radius:8px">` : ''}
       <div class="row" style="justify-content:space-between"><h3>Твоята кухня</h3><span class="big">${M.eur(S.pr.gross)}</span></div>
-      <div class="small muted">${P.room.shape === 'L' ? 'Г-образна' : 'Права'}, ${P.modules.filter((x) => x.type !== 'gap').length} модула · корпус ${esc(M.board(m.carcass).brand + ' ' + M.board(m.carcass).name)} · фронтове ${esc(ft.painted ? M.paint(m.frontColor).name + ' ' + (ft.gloss ? 'гланц' : 'мат') : M.board(m.frontDecor).name)} · обков ${esc(m.hardware.toUpperCase())}</div>
+      <div class="small muted">${P.room.shape === 'L' ? 'Г-образна' : 'Права'}, ${P.modules.filter((x) => x.type !== 'gap').length} модула · корпус ${esc(M.board(m.carcass).brand + ' ' + M.board(m.carcass).name)} · фронтове ${esc(M.frontsSummary(m))} · обков ${esc(m.hardware.toUpperCase())}</div>
       <div class="note">Цената е ориентировъчна, с ДДС, без уредите. Точната оферта идва след оглед.</div>`;
   };
 
@@ -921,7 +921,7 @@
       const b = M.board(P.mats.carcass);
       const ft = M.frontType(P.mats.frontType);
       $('#heroBoard').textContent = b.brand;
-      $('#heroFront').textContent = ft.painted ? (ft.gloss ? 'Гланц' : 'Мат') + ', ' + M.paint(P.mats.frontColor).name : 'ПДЧ';
+      $('#heroFront').textContent = M.frontName(P.mats, 'base');
       $('#heroHw').textContent = M.CATALOG.hardwareBrands.find((h) => h.key === P.mats.hardware).name;
     }
   }

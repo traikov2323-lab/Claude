@@ -6,9 +6,10 @@
   const mm = (v) => v / 1000;
   const hasGsap = () => typeof window.gsap !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  M.DEFAULT_LOOK = { led: true, evening: false, decor: true, pendant: false, spin: false, splash: 'marble' };
+  M.DEFAULT_LOOK = { led: true, evening: false, decor: true, pendant: false, spots: true, dining: false, spin: false, splash: 'marble' };
   M.SPLASH = [
-    { key: 'marble', name: 'Мрамор' },
+    { key: 'slab', name: 'Мраморна плоча' },
+    { key: 'marble', name: 'Мрамор плочки' },
     { key: 'subway', name: 'Метро плочки' },
     { key: 'paint', name: 'Боя' },
   ];
@@ -120,6 +121,40 @@
     });
   }
 
+  function slabTexture() {
+    return canvasTex('slab', 1024, (g, n) => {
+      g.fillStyle = '#efeeea';
+      g.fillRect(0, 0, n, n);
+      const rnd = rng(23);
+      for (let i = 0; i < 34; i++) {
+        g.strokeStyle = `rgba(${110 + rnd() * 40},${105 + rnd() * 30},${100 + rnd() * 30},${0.05 + rnd() * 0.2})`;
+        g.lineWidth = 0.5 + rnd() * 2.4;
+        g.beginPath();
+        let x = rnd() * n,
+          y = rnd() * n;
+        g.moveTo(x, y);
+        for (let k = 0; k < 12; k++) {
+          x += (rnd() - 0.35) * 120;
+          y += (rnd() - 0.5) * 80;
+          g.quadraticCurveTo(x - 30 * rnd(), y + 20 * rnd(), x, y);
+        }
+        g.stroke();
+      }
+    });
+  }
+  // Рифелен МДФ: 36 канала на 0,9 м (≈ 25 мм)
+  function flutedTexture(bump) {
+    return canvasTex(bump ? 'flutedB' : 'fluted', 512, (g, n) => {
+      const per = n / 36;
+      for (let x = 0; x < n; x++) {
+        const v = 0.5 + 0.5 * Math.cos(((x % per) / per) * Math.PI * 2);
+        const c = bump ? Math.round(255 * v) : Math.round(200 + 55 * Math.pow(v, 0.6));
+        g.fillStyle = `rgb(${c},${c},${c})`;
+        g.fillRect(x, 0, 1, n);
+      }
+    }, !bump);
+  }
+
   function subwayTexture() {
     return canvasTex('subway', 512, (g, n) => {
       g.fillStyle = '#d9dcdf';
@@ -143,7 +178,7 @@
   }
 
   /* ---------- Геометрия ---------- */
-  function boxGeo(sx, sy, sz, S = 0.9) {
+  function boxGeo(sx, sy, sz, S = 0.9, noSwap = false) {
     const geo = new THREE.BoxGeometry(sx, sy, sz);
     const pos = geo.attributes.position;
     const uv = geo.attributes.uv;
@@ -159,7 +194,7 @@
     ];
     for (let f = 0; f < 6; f++) {
       let [au, av] = faceAxes[f];
-      if (au === grain) [au, av] = [av, au];
+      if (au === grain && !noSwap) [au, av] = [av, au];
       for (let v = 0; v < 4; v++) {
         const i = f * 4 + v;
         const p = [pos.getX(i), pos.getY(i), pos.getZ(i)];
@@ -288,21 +323,38 @@
     materials(project, look) {
       const { mats } = project;
       const b = M.board(mats.carcass);
-      const ft = M.frontType(mats.frontType);
       const std = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.72, metalness: 0, envMapIntensity: 0.6 }, o));
       const boardMat = (bb) => (bb.grain ? std({ color: '#ffffff', map: woodTexture(bb.color), roughness: 0.62 }) : std({ color: bb.color, roughness: 0.55 }));
-      let front;
-      if (ft.painted) {
-        const col = M.paint(mats.frontColor).color;
-        front = ft.gloss ? new THREE.MeshPhysicalMaterial({ color: col, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1 }) : std({ color: col, roughness: 0.78, envMapIntensity: 0.4 });
-      } else front = boardMat(M.board(mats.frontDecor));
+      const frontFor = (z) => {
+        const zm = M.zone(mats, z);
+        const ft = M.frontType(zm.frontType);
+        if (!ft.painted) return boardMat(M.board(zm.frontDecor));
+        const col = M.paint(zm.frontColor).color;
+        const fl = zm.surface === 'fluted' ? { map: flutedTexture(false), bumpMap: flutedTexture(true), bumpScale: 0.006 } : {};
+        return ft.gloss ? new THREE.MeshPhysicalMaterial(Object.assign({ color: col, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1 }, fl)) : std(Object.assign({ color: col, roughness: 0.78, envMapIntensity: 0.4 }, fl));
+      };
+      const front = frontFor('base');
+      const frontWall = frontFor('wall');
+      const frontTall = frontFor('tall');
       const wt = M.worktop(mats.worktop);
       const night = look && look.evening;
       const out = {
         carcass: boardMat(b),
         front,
         hdf: std({ color: '#ecebe6', roughness: 0.9 }),
-        worktop: wt.grain ? std({ color: '#ffffff', map: woodTexture(wt.color), roughness: 0.45 }) : wt.key === 'wt-marble' ? std({ color: '#ffffff', map: marbleTexture(), roughness: 0.18, envMapIntensity: 0.9 }) : std({ color: wt.color, roughness: 0.5 }),
+        front_base: front,
+        front_wall: frontWall,
+        front_tall: frontTall,
+        worktop: wt.grain ? std({ color: '#ffffff', map: woodTexture(wt.color), roughness: 0.45 }) : wt.key === 'wt-marble' ? std({ color: '#ffffff', map: marbleTexture(), roughness: 0.18, envMapIntensity: 0.9 }) : wt.marble ? std({ color: '#ffffff', map: slabTexture(), roughness: 0.15, envMapIntensity: 0.9 }) : std({ color: wt.color, roughness: 0.4 }),
+        splashSlab: std({ color: '#ffffff', map: slabTexture(), roughness: 0.18, envMapIntensity: 0.8 }),
+        handleBlack: std({ color: '#1a1a1c', metalness: 0.6, roughness: 0.35 }),
+        gola: std({ color: '#2a2a2d', metalness: 0.5, roughness: 0.5 }),
+        ceiling: std({ color: night ? '#9b978f' : '#f6f5f2', roughness: 1, envMapIntensity: 0.2 }),
+        spot: new THREE.MeshBasicMaterial({ color: '#fffaf0' }),
+        fabric: std({ color: '#3f5673', roughness: 0.95, envMapIntensity: 0.2 }),
+        groove: new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.22, depthWrite: false }),
+        tableWood: std({ color: '#ffffff', map: woodTexture('#7a5133'), roughness: 0.5 }),
+        darkWood: std({ color: '#3b2a1e', roughness: 0.6 }),
         steel: std({ color: '#cfd2d6', metalness: 0.95, roughness: 0.22, envMapIntensity: 1.2 }),
         darkSteel: std({ color: '#55595e', metalness: 0.8, roughness: 0.35, envMapIntensity: 1 }),
         blackGlass: new THREE.MeshPhysicalMaterial({ color: '#0b0c0e', roughness: 0.05, metalness: 0.2, clearcoat: 1, envMapIntensity: 1.2 }),
@@ -336,12 +388,12 @@
       return out;
     }
 
-    box(parent, b, mat, cast = true) {
+    box(parent, b, mat, cast = true, noSwap = false) {
       const sx = mm(b[3] - b[0]),
         sy = mm(b[4] - b[1]),
         sz = mm(b[5] - b[2]);
       if (sx <= 0 || sy <= 0 || sz <= 0) return null;
-      const mesh = new THREE.Mesh(boxGeo(sx, sy, sz), mat);
+      const mesh = new THREE.Mesh(boxGeo(sx, sy, sz, 0.9, noSwap), mat);
       mesh.position.set(mm(b[0]) + sx / 2, mm(b[1]) + sy / 2, mm(b[2]) + sz / 2);
       mesh.castShadow = cast;
       mesh.receiveShadow = true;
@@ -363,13 +415,36 @@
     moduleGroup(mod, res, mtl, project, opt = {}) {
       const g = new THREE.Group();
       res.parts.forEach((p, i) => {
-        let mat = mtl[p.mat] || mtl.carcass;
+        let mat = p.mat === 'front' ? mtl['front_' + (p.zone || 'base')] || mtl.front : mtl[p.mat] || mtl.carcass;
         if (opt.highlight && opt.highlight.size) {
           if (opt.highlight.has(i)) mat = mtl.hl;
           else if (opt.ghost) mat = p.mat === 'front' ? mtl.ghostFront : mtl.ghost;
         }
-        const mesh = this.box(g, p.box, mat);
+        const mesh = this.box(g, p.box, mat, true, p.mat === 'front');
         if (mesh) mesh.userData.pi = i;
+        if (mesh && p.mat === 'front' && M.zone(project.mats, p.zone).surface === 'shaker' && ['door', 'drawer'].includes(p.role)) {
+          const [x0, y0, , x1, y1, zf] = p.box;
+          const f = Math.min(70, (x1 - x0) / 5, (y1 - y0) / 4);
+          if (f > 25)
+            for (const b of [
+              [x0, y0, zf, x0 + f, y1, zf + 5],
+              [x1 - f, y0, zf, x1, y1, zf + 5],
+              [x0 + f, y0, zf, x1 - f, y0 + f, zf + 5],
+              [x0 + f, y1 - f, zf, x1 - f, y1, zf + 5],
+            ]) {
+              const fm = this.box(g, b, mat, false, true);
+              if (fm) fm.userData.pi = i;
+            }
+          // тъмна фуга по вътрешния ръб на рамката
+          if (f > 25 && !(opt.highlight && opt.highlight.size))
+            for (const b of [
+              [x0 + f, y0 + f, zf + 5, x0 + f + 5, y1 - f, zf + 5.6],
+              [x1 - f - 5, y0 + f, zf + 5, x1 - f, y1 - f, zf + 5.6],
+              [x0 + f, y0 + f, zf + 5, x1 - f, y0 + f + 5, zf + 5.6],
+              [x0 + f, y1 - f - 5, zf + 5, x1 - f, y1 - f, zf + 5.6],
+            ])
+              this.box(g, b, mtl.groove, false, true);
+        }
       });
       const z1 = M.K.HDF + res.box.d;
       const tag = (m, t) => m && (m.userData.tag = t);
@@ -386,6 +461,12 @@
         }
         if (v.kind === 'oven') {
           const b = v.box;
+          if (v.compact) {
+            tag(this.box(g, [b[0], b[1], b[2], b[3], b[4], b[5] - 22], mtl.darkSteel), 'final');
+            tag(this.box(g, [b[0], b[1], b[5] - 22, b[3], b[4], b[5]], mtl.blackGlass), 'final');
+            tag(this.box(g, [b[0] + 60, b[4] - 60, b[5], b[3] - 60, b[4] - 48, b[5] + 24], mtl.steel), 'final');
+            continue;
+          }
           tag(this.box(g, [b[0], b[1], b[2], b[3], b[4], b[5] - 22], mtl.darkSteel), 'final');
           tag(this.box(g, [b[0], b[1], b[5] - 22, b[3], b[4], b[5]], mtl.blackGlass), 'final');
           tag(this.box(g, [b[0] + 60, b[4] - 70, b[5], b[3] - 60, b[4] - 55, b[5] + 30], mtl.steel), 'final');
@@ -396,26 +477,48 @@
           tag(this.box(g, [b[0], b[1], b[5] - 260, b[3], b[1] + 140, b[5]], mtl.steel), 'final');
         }
       }
-      if (project.mats.handle !== 'tipon') {
+      const hs = project.mats.handle;
+      if (hs !== 'tipon') {
+        const isWall = mod.row === 'wall';
+        const tall = M.isTall(mod.type);
         res.parts.forEach((p) => {
           if (p.mat !== 'front' || !['door', 'drawer'].includes(p.role)) return;
           const [x0, y0, , x1, y1, zf] = p.box;
-          const isWall = mod.row === 'wall';
-          const knob = project.mats.handle === 'knob';
+          const h = y1 - y0;
+          const left = /дясна/.test(p.name);
+          const hx = left ? x0 + 40 : x1 - 40;
+          const bar = (cx, cy, len, vert, mat) => {
+            const b = vert ? [cx - 7, cy - len / 2, zf + 12, cx + 7, cy + len / 2, zf + 26] : [cx - len / 2, cy - 7, zf + 12, cx + len / 2, cy + 7, zf + 26];
+            tag(this.box(g, b, mat, false), 'handle');
+            for (const t of [-1, 1]) {
+              const px = vert ? cx : cx + (t * len) / 2.6,
+                py = vert ? cy + (t * len) / 2.6 : cy;
+              tag(this.box(g, [px - 5, py - 5, zf, px + 5, py + 5, zf + 13], mat, false), 'handle');
+            }
+          };
+          if (hs === 'gola' || hs === 'long') {
+            if (tall || hs === 'long') {
+              if (p.role === 'drawer') bar((x0 + x1) / 2, y1 - 45, Math.min(600, x1 - x0 - 120), false, mtl.handleBlack);
+              else bar(hx, isWall ? y0 + Math.min(h / 2, 220) : tall ? y0 + Math.min(h * 0.55, 1000) : y1 - Math.min(h / 2, 220), Math.min(tall ? 1000 : 360, h * 0.7), true, mtl.handleBlack);
+            } else if (!isWall) {
+              // Gola: тъмен канал над всяко чело / врата
+              tag(this.box(g, [x0 - 1.5, y1 - 40, zf - 20, x1 + 1.5, y1 + 2, zf + 0.6], mtl.gola, false), 'handle');
+            }
+            return;
+          }
+          const mat = hs === 'barblack' ? mtl.handleBlack : mtl.handle;
+          const knob = hs === 'knob';
           let hb;
           if (p.role === 'drawer') {
             const cx = (x0 + x1) / 2,
               cy = y1 - 40;
             hb = knob ? [cx - 12, cy - 12, zf, cx + 12, cy + 12, zf + 28] : [cx - 80, cy - 6, zf + 12, cx + 80, cy + 6, zf + 28];
           } else {
-            const left = /дясна/.test(p.name);
-            const hx = left ? x0 + 40 : x1 - 40;
-            const h = y1 - y0;
-            let cy = isWall ? y0 + 90 : M.isTall(mod.type) ? (h > 1000 ? y0 + 1050 : y0 + 90) : y1 - 110;
+            let cy = isWall ? y0 + 90 : tall ? (h > 1000 ? y0 + 1050 : y0 + 90) : y1 - 110;
             if (h < 400) cy = y0 + h / 2;
             hb = knob ? [hx - 12, cy - 12, zf, hx + 12, cy + 12, zf + 28] : [hx - 6, cy - 80, zf + 12, hx + 6, cy + 80, zf + 28];
           }
-          tag(this.box(g, hb, mtl.handle, false), 'handle');
+          tag(this.box(g, hb, mat, false), 'handle');
         });
       }
       if (mod.row === 'base' && opt.legs !== false && mod.type !== 'filler' && mod.type !== 'base-dw') {
@@ -480,7 +583,7 @@
         this.cabinets.add(fr);
       }
       const ct = M.K.plinth + M.K.baseH;
-      const th = project.mats.worktop === 'wt-compact' ? 12 : M.K.worktop;
+      const th = M.worktop(project.mats.worktop).thin ? 12 : M.K.worktop;
       const runs = M.worktopRuns(project);
       for (const r of runs) {
         const fr = this.wallFrame(room, r.wall, r.x0, ct);
@@ -529,6 +632,8 @@
         this.backsplash(project, runs, topY, mtl, look);
         if (look.led) this.ledStrips(project, mtl, look);
         if (look.decor) this.decor(project, topY, mtl);
+        if (look.spots) this.ceilingSpots(project, mtl, look);
+        if (look.dining) this.dining(project, mtl);
         if (look.pendant) this.pendants(project, mtl, look);
       }
 
@@ -551,7 +656,7 @@
     backsplash(project, runs, topY, mtl, look) {
       const { room } = project;
       const d = M.dims(room);
-      const mat = look.splash === 'subway' ? mtl.splashSubway : look.splash === 'marble' ? mtl.splashMarble : null;
+      const mat = look.splash === 'subway' ? mtl.splashSubway : look.splash === 'marble' ? mtl.splashMarble : look.splash === 'slab' ? mtl.splashSlab : null;
       if (!mat) return;
       for (const r of runs) {
         const wins = room.features.filter((f) => f.type === 'window' && f.wall === r.wall && f.sill < d.upperBottom);
@@ -671,32 +776,129 @@
       }
     }
 
-    pendants(project, mtl, look) {
-      const { room } = project;
+    tableSpot(room) {
       const LA = mm(room.wallA);
-      const H = mm(room.height);
-      const z = room.shape === 'L' ? 1.35 : 1.15;
-      const n = LA > 3.2 ? 3 : 2;
-      for (let i = 0; i < n; i++) {
-        const x = (LA * (i + 1)) / (n + 1);
-        const g = new THREE.Group();
-        g.position.set(x, 0, z);
-        const yb = 1.75;
-        const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, H - yb - 0.18, 6), mtl.cord);
-        cord.position.y = (H + yb + 0.18) / 2;
-        g.add(cord);
-        const shade = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.2, 40, 1, true), mtl.lamp);
-        shade.position.y = yb + 0.1;
-        shade.castShadow = true;
-        g.add(shade);
-        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 12), mtl.bulb);
-        bulb.position.y = yb + 0.03;
-        g.add(bulb);
-        const pl = new THREE.PointLight(0xffd9a0, look.evening ? 0.9 : 0.35, 3.2, 2);
-        pl.position.y = yb - 0.02;
-        g.add(pl);
-        this.extras.add(g);
+      const L = room.shape === 'L';
+      const LB = L ? mm(room.wallB) : 0;
+      return L ? { x: Math.min(LA * 0.4, LA - 1.8), z: Math.max(1.85, LB * 0.62) } : { x: LA * 0.68, z: 2.35 };
+    }
+
+    ceilingSpots(project, mtl, look) {
+      const { room } = project;
+      const LA = mm(room.wallA),
+        H = mm(room.height);
+      const L = room.shape === 'L';
+      const LB = L ? mm(room.wallB) : 0;
+      const fw = LA + 2.2,
+        fd = Math.max(LB, 2.4) + 1.6;
+      const ceil = new THREE.Mesh(new THREE.PlaneGeometry(fw, fd), mtl.ceiling);
+      ceil.rotation.x = Math.PI / 2;
+      ceil.position.set(LA / 2 - (L ? 0.5 : 0), H, fd / 2);
+      this.extras.add(ceil);
+      const pts = [];
+      const nA = Math.max(2, Math.round(LA / 1.1));
+      for (let i = 0; i < nA; i++) pts.push([(LA * (i + 0.5)) / nA, 0.8]);
+      if (L) {
+        const nB = Math.max(1, Math.round((LB - 1.2) / 1.1));
+        for (let i = 0; i < nB; i++) pts.push([LA - 0.8, 1.3 + ((LB - 1.3) * (i + 0.5)) / nB]);
       }
+      for (const [x, z] of pts) {
+        const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.006, 24), mtl.gola);
+        ring.position.set(x, H - 0.003, z);
+        const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.008, 24), mtl.spot);
+        lamp.position.set(x, H - 0.006, z);
+        this.extras.add(ring, lamp);
+      }
+      for (const [x, z] of pts.filter((_, i) => i % 2 === 0).slice(0, 4)) {
+        const pl = new THREE.PointLight(0xfff1dc, look.evening ? 0.55 : 0.18, 3, 2);
+        pl.position.set(x, H - 0.25, z);
+        this.extras.add(pl);
+      }
+    }
+
+    dining(project, mtl) {
+      const t = this.tableSpot(project.room);
+      const g = new THREE.Group();
+      g.position.set(t.x, 0, t.z);
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.035, 72), mtl.tableWood);
+      top.scale.set(1.7, 1, 1);
+      top.position.y = 0.745;
+      top.castShadow = top.receiveShadow = true;
+      g.add(top);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.3, 0.73, 48), mtl.tableWood);
+      base.position.y = 0.365;
+      base.castShadow = true;
+      g.add(base);
+      const chair = (x, z, rot) => {
+        const c = new THREE.Group();
+        c.position.set(x, 0, z);
+        c.rotation.y = rot;
+        const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.22, 0.08, 32), mtl.fabric);
+        seat.position.y = 0.47;
+        seat.castShadow = true;
+        c.add(seat);
+        const back = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.23, 0.36, 32, 1, true, Math.PI * 0.15, Math.PI * 0.7), mtl.fabric);
+        back.material = mtl.fabric.clone();
+        back.material.side = THREE.DoubleSide;
+        back.position.y = 0.68;
+        back.castShadow = true;
+        c.add(back);
+        for (const [lx, lz] of [
+          [0.14, 0.14],
+          [-0.14, 0.14],
+          [0.14, -0.14],
+          [-0.14, -0.14],
+        ]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.009, 0.45, 8), mtl.darkWood);
+          leg.position.set(lx * 1.1, 0.225, lz * 1.1);
+          leg.rotation.set(lz > 0 ? 0.08 : -0.08, 0, lx > 0 ? -0.08 : 0.08);
+          c.add(leg);
+        }
+        g.add(c);
+      };
+      // облегалката гледа навън от масата
+      chair(-0.42, -0.62, Math.PI);
+      chair(0.42, -0.62, Math.PI);
+      chair(-0.42, 0.62, 0);
+      chair(0.42, 0.62, 0);
+      chair(-1.08, 0, -Math.PI / 2);
+      chair(1.08, 0, Math.PI / 2);
+      this.extras.add(g);
+    }
+
+    pendants(project, mtl, look) {
+      // линейна LED лампа-пръстен над масата (или пред кухнята)
+      const { room } = project;
+      const H = mm(room.height);
+      const t = this.tableSpot(room);
+      const z = look.dining ? t.z : room.shape === 'L' ? 1.3 : 1.15;
+      const x = look.dining ? t.x : mm(room.wallA) / 2;
+      const y = look.dining ? 1.62 : 1.85;
+      const g = new THREE.Group();
+      g.position.set(x, 0, z);
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.035, 0.06), mtl.lamp);
+      bar.position.y = H - 0.02;
+      g.add(bar);
+      for (const dx of [-0.3, 0.3]) {
+        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, H - y, 6), mtl.cord);
+        w.position.set(dx, (H + y) / 2, 0);
+        g.add(w);
+      }
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.016, 12, 96), mtl.lamp);
+      ring.rotation.x = Math.PI / 2;
+      ring.scale.set(1.55, 1, 1);
+      ring.position.y = y;
+      ring.castShadow = true;
+      g.add(ring);
+      const led = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.007, 8, 96), mtl.bulb);
+      led.rotation.x = Math.PI / 2;
+      led.scale.set(1.55, 1, 1);
+      led.position.y = y - 0.014;
+      g.add(led);
+      const pl = new THREE.PointLight(0xffe2b5, look.evening ? 1.1 : 0.3, 3.5, 2);
+      pl.position.y = y - 0.08;
+      g.add(pl);
+      this.extras.add(g);
     }
 
     wallMesh(wall, len, H, room, mtl) {

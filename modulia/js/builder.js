@@ -19,6 +19,8 @@
     { type: 'base-bottle', name: 'Бутилиера', w: 300, widths: [150, 200, 300] },
     { type: 'tall-fridge', name: 'Хладилник', w: 600, widths: [600] },
     { type: 'tall-oven', name: 'Фурна в колона', w: 600, widths: [600] },
+    { type: 'tall-oven2', name: 'Колона 2 уреда', w: 600, widths: [600] },
+    { type: 'tall-pantry', name: 'Колона килер', w: 600, widths: [450, 500, 600, 900] },
     { type: 'wall-door', name: 'Горен шкаф', w: 600, widths: [300, 400, 450, 500, 600, 800, 900] },
     { type: 'wall-hood', name: 'Аспиратор', w: 600, widths: [600, 900] },
     { type: 'gap', name: 'Свободно място', w: 600, widths: [200, 300, 400, 600, 800, 1000, 1200], any: true },
@@ -36,17 +38,40 @@
   ];
   const FRONTS = [
     ...M.CATALOG.paintColors.map((c) => ({ key: 'p:' + c.key, name: c.name, color: c.color, set: { frontType: 'mdf-mat', frontColor: c.key } })),
+    { key: 'd:egger-h3734', name: 'Орех Дижон', color: M.board('egger-h3734').color, grain: true, set: { frontType: 'pdch', frontDecor: 'egger-h3734' } },
+    { key: 'd:egger-u702', name: 'Кашмир сив', color: M.board('egger-u702').color, set: { frontType: 'pdch', frontDecor: 'egger-u702' } },
     { key: 'd:egger-h1145', name: 'Дъб Бардолино', color: M.board('egger-h1145').color, grain: true, set: { frontType: 'pdch', frontDecor: 'egger-h1145' } },
     { key: 'd:egger-h3303', name: 'Дъб Хамилтън', color: M.board('egger-h3303').color, grain: true, set: { frontType: 'pdch', frontDecor: 'egger-h3303' } },
     { key: 'd:krono-sonoma', name: 'Дъб Сонома', color: M.board('krono-sonoma').color, grain: true, set: { frontType: 'pdch', frontDecor: 'krono-sonoma' } },
     { key: 'd:egger-u999', name: 'Черно', color: M.board('egger-u999').color, set: { frontType: 'pdch', frontDecor: 'egger-u999' } },
   ];
-  const CARCASS = ['egger-w1000', 'egger-u708', 'kasta-anthracite', 'egger-h1145'];
+  const CARCASS = ['egger-w1000', 'egger-u708', 'kasta-anthracite', 'egger-h1145', 'egger-h3734'];
 
   // Готови кухни
   const win = (wall, x, w) => ({ id: M.uid('f'), type: 'window', wall, x, w, sill: 1000, h: 1300 });
   const pt = (type, wall, x) => ({ id: M.uid('f'), type, wall, x });
   const TEMPLATES = [
+    {
+      name: 'Модерен орех',
+      sub: 'Права · 4,4 м · до тавана',
+      room: { shape: 'I', wallA: 4400, wallB: 2400, height: 2700, features: [pt('water', 'A', 2800), pt('hood', 'A', 1500)] },
+      opts: { fridge: true, ovenTall: true, dishwasher: true, uppers: true, wallH: 'ceil' },
+      modules: [
+        ['base', 'tall-fridge', 600],
+        ['base', 'tall-pantry', 600],
+        ['base', 'base-drawers', 600, true],
+        ['base', 'base-drawers', 600],
+        ['base', 'base-sink', 800],
+        ['base', 'base-dw', 600],
+        ['base', 'tall-oven2', 600],
+        ['wall', 'wall-hood', 600],
+        ['wall', 'wall-door', 600],
+        ['wall', 'wall-door', 700],
+        ['wall', 'wall-door', 700],
+      ],
+      mats: { frontType: 'pdch', frontDecor: 'egger-h3734', surface: 'flat', zones: { wall: { frontType: 'mdf-mat', frontColor: 'sand', surface: 'fluted' } }, carcass: 'egger-w1000', worktop: 'wt-ceramic', handle: 'gola' },
+      look: { splash: 'slab', spots: true, pendant: true, dining: true, decor: false, led: true },
+    },
     { name: 'Компактна', sub: 'Права · 2,4 м', room: { shape: 'I', wallA: 2400, wallB: 2400, features: [pt('water', 'A', 700), pt('hood', 'A', 1750)] }, opts: { fridge: false, ovenTall: false, dishwasher: false, uppers: true }, mats: THEMES[0].mats },
     { name: 'Класическа права', sub: 'Права · 3,6 м · хладилник', room: { shape: 'I', wallA: 3600, wallB: 2400, features: [win('A', 900, 1100), pt('water', 'A', 1450), pt('hood', 'A', 2650)] }, opts: { fridge: true, ovenTall: false, dishwasher: true, uppers: true }, mats: THEMES[1].mats },
     { name: 'Ъглова', sub: 'Ъглова · 3,0 × 2,4 м', room: { shape: 'L', wallA: 3000, wallB: 2400, features: [win('A', 700, 1000), pt('water', 'A', 1200), pt('hood', 'B', 1200)] }, opts: { fridge: true, ovenTall: false, dishwasher: true, uppers: true }, mats: THEMES[5].mats },
@@ -58,12 +83,19 @@
   function templateProject(t) {
     const base = M.defaultProject();
     const room = JSON.parse(JSON.stringify(Object.assign({}, base.room, t.room)));
-    room.height = 2600;
+    room.height = (t.room && t.room.height) || 2600;
     room.opts = Object.assign({}, base.room.opts, t.opts);
-    const mats = Object.assign({}, base.mats, t.mats);
-    const p = { id: base.id, name: t.name, auto: true, room, modules: [], mats, look: Object.assign({}, M.DEFAULT_LOOK) };
-    p.modules = M.autoLayout(room).modules;
-    toManual(p);
+    const mats = Object.assign({}, base.mats, JSON.parse(JSON.stringify(t.mats)));
+    const p = { id: base.id, name: t.name, auto: true, room, modules: [], mats, look: Object.assign({}, M.DEFAULT_LOOK, t.look || {}) };
+    if (t.modules) {
+      const idx = { base: 0, wall: 0 };
+      p.modules = t.modules.map(([row, type, w, hob]) => ({ id: M.uid(), wall: 'A', row, type, w, x: idx[row]++, hob: !!hob || type === 'base-oven' }));
+      p.auto = false;
+      M.pack(room, p.modules);
+    } else {
+      p.modules = M.autoLayout(room).modules;
+      toManual(p);
+    }
     return p;
   }
   // от автоматично към ръчно подреждане: махаме празните места над колоните (пакетирането ги заобикаля само)
@@ -74,50 +106,86 @@
   }
 
   /* ---------- Пиктограми ---------- */
-  function frontFill() {
-    const m = S.project.mats;
-    const ft = M.frontType(m.frontType);
-    return ft.painted ? M.paint(m.frontColor).color : M.board(m.frontDecor).color;
+  function frontFill(z = 'base') {
+    return M.frontColorHex(S.project.mats, z);
   }
   const lum = (hex) => {
     const n = parseInt(hex.slice(1), 16);
     return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
   };
-  // Изглед отпред на шкаф (viewBox = w × h в мм)
-  function pict(type, w, h, fill, handle = 'bar') {
+  const zoneOfType = (t) => (t.startsWith('tall') ? 'tall' : t.startsWith('wall') ? 'wall' : 'base');
+  // Изглед отпред на шкаф (viewBox = w × h в мм), в цвета и повърхността на зоната му
+  function pict(type, w, h, opt = {}) {
+    const mats = S.project.mats;
+    const zone = opt.zone || zoneOfType(type);
+    const zm = M.zone(mats, zone);
+    const fill = opt.fill || M.frontColorHex(mats, zone);
+    const surface = zm.surface;
+    const hs = opt.handle || mats.handle;
     const line = lum(fill) < 0.45 ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.22)';
-    const hc = handle === 'knob' ? '#2b2b2e' : '#9a9ca0';
-    const H = (x, y, vert) => (handle === 'tipon' ? '' : handle === 'knob' ? `<circle cx="${x}" cy="${y}" r="16" fill="${hc}"/>` : vert ? `<rect x="${x - 6}" y="${y - 70}" width="12" height="140" rx="6" fill="${hc}"/>` : `<rect x="${x - 70}" y="${y - 6}" width="140" height="12" rx="6" fill="${hc}"/>`);
-    const R = (x, y, ww, hh) => `<rect x="${x}" y="${y}" width="${ww}" height="${hh}" rx="6" fill="${fill}" stroke="${line}" stroke-width="4"/>`;
+    const golaBase = hs === 'gola' && zone === 'base';
+    const black = hs === 'barblack' || hs === 'long' || (hs === 'gola' && zone === 'tall');
+    const hc = black || hs === 'knob' ? '#1f1f22' : '#9a9ca0';
+    const H = (x, y, vert, room = 400) => {
+      if (hs === 'tipon' || (hs === 'gola' && zone !== 'tall')) return '';
+      if (hs === 'knob') return `<circle cx="${x}" cy="${y}" r="16" fill="${hc}"/>`;
+      const len = hs === 'long' || hs === 'gola' ? Math.min(vert ? 900 : 560, room * 0.7) : 140;
+      return vert ? `<rect x="${x - 7}" y="${y - len / 2}" width="14" height="${len}" rx="7" fill="${hc}"/>` : `<rect x="${x - len / 2}" y="${y - 7}" width="${len}" height="14" rx="7" fill="${hc}"/>`;
+    };
+    const R = (x, y, ww, hh) => {
+      let r = `<rect x="${x}" y="${y}" width="${ww}" height="${hh}" rx="6" fill="${fill}" stroke="${line}" stroke-width="4"/>`;
+      if (surface === 'fluted') for (let fx = x + 25; fx < x + ww - 10; fx += 25) r += `<line x1="${fx}" y1="${y + 6}" x2="${fx}" y2="${y + hh - 6}" stroke="${line}" stroke-width="3"/>`;
+      if (surface === 'shaker' && ww > 200 && hh > 200) r += `<rect x="${x + 55}" y="${y + 55}" width="${ww - 110}" height="${hh - 110}" rx="4" fill="none" stroke="${line}" stroke-width="5"/>`;
+      if (golaBase) r += `<rect x="${x}" y="${y}" width="${ww}" height="30" fill="#2a2a2d"/>`;
+      return r;
+    };
     let g = '';
     if (type === 'gap') return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><rect x="6" y="6" width="${w - 12}" height="${h - 12}" rx="14" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="6" stroke-dasharray="26 20"/></svg>`;
+    const oven = (y, hh) => `<rect x="4" y="${y}" width="${w - 8}" height="${hh}" rx="8" fill="#1d1d1f"/><rect x="${w * 0.14}" y="${y + hh * 0.22}" width="${w * 0.72}" height="${hh * 0.6}" rx="10" fill="#3a3a3c"/><rect x="${w * 0.2}" y="${y + 18}" width="${w * 0.6}" height="12" rx="6" fill="#8e8e93"/>`;
     if (type === 'base-drawers') {
-      const hs = [0.25, 0.375, 0.375];
+      const hs3 = [0.25, 0.375, 0.375];
       let y = 4;
-      hs.forEach((k) => {
+      hs3.forEach((k) => {
         const hh = (h - 16) * k;
-        g += R(4, y, w - 8, hh - 4) + H(w / 2, y + 50, false);
+        g += R(4, y, w - 8, hh - 4) + H(w / 2, y + 50, false, w);
         y += hh + 4;
       });
     } else if (type === 'base-oven') {
-      g += R(4, 4, w - 8, h * 0.17) + H(w / 2, 4 + h * 0.08, false);
-      g += `<rect x="4" y="${h * 0.2}" width="${w - 8}" height="${h * 0.78}" rx="8" fill="#1d1d1f"/><rect x="${w * 0.14}" y="${h * 0.36}" width="${w * 0.72}" height="${h * 0.46}" rx="10" fill="#3a3a3c"/><rect x="${w * 0.2}" y="${h * 0.24}" width="${w * 0.6}" height="14" rx="7" fill="#8e8e93"/>`;
+      g += R(4, 4, w - 8, h * 0.17) + H(w / 2, 4 + h * 0.08, false, w) + oven(h * 0.2, h * 0.78);
     } else if (type === 'base-dw') {
-      g += R(4, 4, w - 8, h - 8) + `<rect x="${w * 0.2}" y="30" width="${w * 0.6}" height="14" rx="7" fill="${hc}"/>`;
+      g += R(4, 4, w - 8, h - 8) + (golaBase || hs === 'tipon' ? '' : `<rect x="${w * 0.2}" y="40" width="${w * 0.6}" height="14" rx="7" fill="${hc}"/>`);
     } else if (type === 'wall-hood') {
-      g += R(4, 4, w - 8, h * 0.72) + H(w / 2, h * 0.6, false) + `<rect x="10" y="${h * 0.76}" width="${w - 20}" height="${h * 0.22}" rx="8" fill="#a1a1a6"/>`;
+      g += R(4, 4, w - 8, h - 190) + H(w / 2, h - 240, false, w) + `<rect x="10" y="${h - 180}" width="${w - 20}" height="176" rx="8" fill="#a1a1a6"/>`;
     } else if (type === 'tall-fridge') {
-      g += R(4, 4, w - 8, h * 0.14) + R(4, h * 0.15 + 4, w - 8, h * 0.85 - 12) + H(w - 50, h * 0.3, true);
+      const top = h - 1790;
+      g += R(4, 4, w - 8, top - 6) + R(4, top + 2, w - 8, h - top - 6) + H(w - 50, top + 600, true, 1700);
     } else if (type === 'tall-oven') {
-      g += R(4, 4, w - 8, h * 0.34) + `<rect x="4" y="${h * 0.36}" width="${w - 8}" height="${h * 0.28}" rx="8" fill="#1d1d1f"/><rect x="${w * 0.14}" y="${h * 0.42}" width="${w * 0.72}" height="${h * 0.18}" rx="10" fill="#3a3a3c"/>` + R(4, h * 0.66, w - 8, h * 0.34 - 4) + H(w - 50, h * 0.8, true);
-    } else {
-      // врати
-      const two = w > 600 && type !== 'base-bottle';
-      const top = type.startsWith('wall');
+      g += R(4, 4, w - 8, h - 1351 - 8) + oven(h - 1351, 595) + R(4, h - 720, w - 8, 716) + H(w - 50, h - 360, true, 700);
+    } else if (type === 'tall-oven2') {
+      const yTop = h - (720 + 18 + 595 + 18 + 455 + 18);
+      g += (yTop > 150 ? R(4, 4, w - 8, yTop - 6) : '') + oven(yTop + 2, 455) + oven(yTop + 475, 595) + R(4, h - 718, w - 8, 355) + R(4, h - 360, w - 8, 356) + H(w / 2, h - 690, false, w) + H(w / 2, h - 330, false, w);
+    } else if (type === 'tall-pantry') {
+      const ySplit = Math.min(h - 360, 1480);
+      const two = w > 600;
+      const col = (x0, dw, hx) => R(x0, 4, dw, h - ySplit - 8) + R(x0, h - ySplit + 2, dw, ySplit - 6) + H(hx, h - ySplit + 500, true, 1400);
       if (two) {
         const dw = (w - 12) / 2;
-        g += R(4, 4, dw, h - 8) + R(8 + dw, 4, dw, h - 8) + H(4 + dw - 40, top ? h - 110 : 110, true) + H(8 + dw + 40, top ? h - 110 : 110, true);
-      } else g += R(4, 4, w - 8, h - 8) + H(type === 'base-bottle' ? w / 2 : w - 50, type === 'base-bottle' ? 50 : top ? h - 110 : 110, type !== 'base-bottle');
+        g += col(4, dw, 4 + dw - 40) + col(8 + dw, dw, 8 + dw + 40);
+      } else g += col(4, w - 8, w - 50);
+    } else {
+      // врати (+ горен ред при шкафове до тавана)
+      const two = w > 600 && type !== 'base-bottle';
+      const top = type.startsWith('wall');
+      const split = top && h > 1000 ? 380 : 0;
+      const doorRow = (y0, hh, hy) => {
+        if (two) {
+          const dw = (w - 12) / 2;
+          return R(4, y0, dw, hh) + R(8 + dw, y0, dw, hh) + H(4 + dw - 40, hy, true, hh) + H(8 + dw + 40, hy, true, hh);
+        }
+        return R(4, y0, w - 8, hh) + H(type === 'base-bottle' ? w / 2 : w - 50, type === 'base-bottle' ? y0 + 50 : hy, type !== 'base-bottle', hh);
+      };
+      if (split) g += doorRow(4, split - 8, split - 110) + doorRow(split + 2, h - split - 6, h - 110);
+      else g += doorRow(4, h - 8, top ? h - 110 : 110);
       if (type === 'base-sink') g += `<path d="M${w / 2 - 40} ${-2} v-46 a30 30 0 0 1 60 0 v18" fill="none" stroke="#8e8e93" stroke-width="12" stroke-linecap="round"/>`;
     }
     return `<svg viewBox="0 ${type === 'base-sink' ? -80 : 0} ${w} ${h + (type === 'base-sink' ? 80 : 0)}" preserveAspectRatio="none">${g}</svg>`;
@@ -225,7 +293,7 @@
         return;
       }
       const p = templateProject(TEMPLATES[i]);
-      p.modules = M.autoLayout(p.room).modules;
+      M.pack(p.room, p.modules);
       const built = M.buildProject(p);
       const pr = M.price(p, built, M.materialGroups(p, built), prices);
       v.setProject(p, built, { look: { spin: false, decor: true } });
@@ -256,6 +324,14 @@
         ${r.shape === 'L' ? step('wallB', 'Стена B (вдясно)', r.wallB) : ''}
         ${step('height', 'Височина на тавана', r.height)}
       </div>
+      <div class="row"><span class="lbl" style="width:130px">Горни шкафове</span><div class="seg" id="bUpH">${[
+        ['none', 'Без'],
+        ['720', '72 см'],
+        ['900', '90 см'],
+        ['ceil', 'До тавана'],
+      ]
+        .map(([k, n]) => `<button data-k="${k}" aria-pressed="${r.opts.uppers === false ? k === 'none' : String(r.opts.wallH || 720) === k}">${n}</button>`)
+        .join('')}</div></div>
       <div class="card pad stack" style="box-shadow:none;background:var(--fill)">
         <label class="switch" style="padding:0">Има прозорец на стена A<input type="checkbox" id="bWin" ${w ? 'checked' : ''}></label>
         ${w ? `<div class="row"><span class="lbl" style="width:90px">Къде</span><div class="seg" id="bWinPos">${[['Вляво', 0.15], ['В средата', 0.5], ['Вдясно', 0.85]].map(([n, k]) => `<button data-k="${k}" aria-pressed="${Math.abs(w.x + w.w / 2 - r.wallA * k) < r.wallA * 0.12}">${n}</button>`).join('')}</div></div>
@@ -291,6 +367,22 @@
     };
     $$('.stp button').forEach((b) => b.addEventListener('click', () => setDim(b.dataset.k, S.project.room[b.dataset.k] + +b.dataset.d * 10)));
     $$('.stp input').forEach((inp) => inp.addEventListener('change', () => setDim(inp.id.slice(3), (parseFloat(inp.value.replace(',', '.')) || 0) * 10)));
+    $$('#bUpH button').forEach((b) =>
+      b.addEventListener('click', () => {
+        const k = b.dataset.k;
+        apply((p) => {
+          if (k === 'none') {
+            p.room.opts.uppers = false;
+            p.modules = p.modules.filter((m) => m.row !== 'wall');
+          } else {
+            p.room.opts.uppers = true;
+            p.room.opts.wallH = k === 'ceil' ? 'ceil' : +k;
+          }
+        });
+        if (k !== 'none' && !S.project.modules.some((m) => m.row === 'wall')) M.toast('Добави горни шкафове в стъпка „Шкафове“');
+        renderSize();
+      })
+    );
     $('#bWin').addEventListener('change', (e) => {
       apply((p) => {
         p.room.features = p.room.features.filter((f) => !(f.type === 'window' && f.wall === 'A'));
@@ -382,9 +474,8 @@
   }
 
   function palCard(i, forceRow) {
-    const fill = frontFill();
-    const h = i.type.startsWith('tall') ? 2060 : i.type.startsWith('wall') ? 720 : 720;
-    return `<button class="pcard" data-type="${i.type}" data-row="${forceRow || rowOf(i.type)}" title="${esc(i.name)}"><span class="pv ${i.type.startsWith('tall') ? 'tall' : ''}">${pict(i.type, i.w, h, fill, S.project.mats.handle)}</span><span class="pn">${esc(i.name)}</span><span class="pw">${i.w / 10} см</span></button>`;
+    const h = i.type.startsWith('tall') ? 2060 : 720;
+    return `<button class="pcard" data-type="${i.type}" data-row="${forceRow || rowOf(i.type)}" title="${esc(i.name)}"><span class="pv ${i.type.startsWith('tall') ? 'tall' : ''}">${pict(i.type, i.w, h)}</span><span class="pn">${esc(i.name)}</span><span class="pw">${i.w / 10} см</span></button>`;
   }
 
   function addModule(type, row, index) {
@@ -479,7 +570,6 @@
     board.style.width = g.W + 'px';
     board.style.height = g.Hp + 'px';
     const Y = (mm) => (H - mm) * s;
-    const fill = frontFill();
     const wt = M.worktop(P.mats.worktop);
     let html = '';
     // зони за пускане
@@ -490,13 +580,14 @@
     // ъгъл
     if (r.shape === 'L' && B.wall === 'B') html += `<div class="bcorner" style="left:0;width:${581 * s}px;top:${Y(K.plinth + K.baseH + K.worktop)}px;height:${(K.plinth + K.baseH + K.worktop) * s}px"><span>ъгъл</span></div>`;
     // плот
-    for (const run of M.worktopRuns(P).filter((x) => x.wall === B.wall)) html += `<div class="bwt" style="left:${run.x0 * s}px;width:${(run.x1 - run.x0) * s}px;top:${Y(K.plinth + K.baseH + K.worktop)}px;height:${Math.max(4, K.worktop * s)}px;background:${wt.color}"></div>`;
+    const wth = wt.thin ? 12 : K.worktop;
+    for (const run of M.worktopRuns(P).filter((x) => x.wall === B.wall)) html += `<div class="bwt" style="left:${run.x0 * s}px;width:${(run.x1 - run.x0) * s}px;top:${Y(K.plinth + K.baseH + wth)}px;height:${Math.max(3, wth * s)}px;background:${wt.color}"></div>`;
     // шкафове
     for (const m of P.modules.filter((m) => m.wall === B.wall)) {
       const box = M.moduleBox(m, r);
       const corner = m.type === 'base-corner';
       const t = corner ? 'base-door' : m.type;
-      html += `<div class="bcab${B.sel === m.id ? ' sel' : ''}${corner ? ' fixed' : ''}${m.type === 'gap' ? ' gapc' : ''}" data-id="${m.id}" style="left:${m.x * s}px;width:${m.w * s}px;top:${Y(box.y0 + box.h)}px;height:${box.h * s}px" title="${esc(corner ? 'Ъглов шкаф' : (item(m.type) || {}).name || '')} · ${m.w / 10} см">${pict(t, m.w, box.h, fill, P.mats.handle)}<span class="bw">${corner ? 'ъгъл' : m.w / 10}</span></div>`;
+      html += `<div class="bcab${B.sel === m.id ? ' sel' : ''}${corner ? ' fixed' : ''}${m.type === 'gap' ? ' gapc' : ''}" data-id="${m.id}" style="left:${m.x * s}px;width:${m.w * s}px;top:${Y(box.y0 + box.h)}px;height:${box.h * s}px" title="${esc(corner ? 'Ъглов шкаф' : (item(m.type) || {}).name || '')} · ${m.w / 10} см">${pict(t, m.w, box.h)}<span class="bw">${corner ? 'ъгъл' : m.w / 10}</span></div>`;
     }
     html += `<div class="bfloor"></div><div class="marker" id="bMarker" hidden></div>`;
     board.innerHTML = html;
@@ -670,60 +761,208 @@
     });
   }
 
-  /* ---------- 4. Цветове ---------- */
-  function themeArt(mt) {
-    const f = mt.frontType === 'pdch' ? M.board(mt.frontDecor).color : M.paint(mt.frontColor).color;
-    const w = M.worktop(mt.worktop).color;
-    return `<svg viewBox="0 0 160 90"><rect width="160" height="90" fill="#f2f1ee"/><rect x="10" y="10" width="44" height="26" rx="3" fill="${f}"/><rect x="58" y="10" width="44" height="26" rx="3" fill="${f}"/><rect x="106" y="10" width="44" height="26" rx="3" fill="${f}"/><rect x="6" y="52" width="148" height="5" fill="${w}"/><rect x="10" y="58" width="44" height="26" rx="3" fill="${f}"/><rect x="58" y="58" width="44" height="26" rx="3" fill="${f}"/><rect x="106" y="58" width="44" height="26" rx="3" fill="${f}"/></svg>`;
+  /* ---------- 4. Цветове и стил ---------- */
+  const STYLES = [
+    {
+      name: 'Модерен орех',
+      sub: 'Орех, рифелен пясъчен МДФ, мраморна плоча, без дръжки',
+      mats: { frontType: 'pdch', frontDecor: 'egger-h3734', surface: 'flat', zones: { wall: { frontType: 'mdf-mat', frontColor: 'sand', surface: 'fluted' } }, carcass: 'egger-w1000', worktop: 'wt-ceramic', handle: 'gola' },
+      look: { splash: 'slab', spots: true, pendant: true, dining: true, decor: false, led: true },
+      wallH: 'ceil',
+    },
+    {
+      name: 'Японди',
+      sub: 'Светъл дъб и крем, бял плот, без дръжки',
+      mats: { frontType: 'pdch', frontDecor: 'egger-h1145', surface: 'flat', zones: { wall: { frontType: 'mdf-mat', frontColor: 'cream', surface: 'flat' } }, carcass: 'egger-w1000', worktop: 'wt-white', handle: 'gola' },
+      look: { splash: 'slab', spots: true, pendant: false, dining: true, decor: true, led: true },
+      wallH: 'ceil',
+    },
+    {
+      name: 'Черно и орех',
+      sub: 'Черен мат, колони от орех, керамичен плот',
+      mats: { frontType: 'mdf-mat', frontColor: 'black', surface: 'flat', zones: { tall: { frontType: 'pdch', frontDecor: 'egger-h3734' } }, carcass: 'kasta-anthracite', worktop: 'wt-ceramic', handle: 'long' },
+      look: { splash: 'slab', spots: true, pendant: true, dining: true, decor: false, led: true },
+      wallH: 900,
+    },
+    {
+      name: 'Зелено и дъб',
+      sub: 'Маслинено рифелено, крем горе, дъбов плот',
+      mats: { frontType: 'mdf-mat', frontColor: 'sage', surface: 'fluted', zones: { wall: { frontType: 'mdf-mat', frontColor: 'cream', surface: 'flat' } }, carcass: 'egger-w1000', worktop: 'wt-oak', handle: 'knob' },
+      look: { splash: 'subway', spots: true, pendant: false, dining: false, decor: true, led: true },
+      wallH: 720,
+    },
+    {
+      name: 'Скандинавско',
+      sub: 'Бяло, дъбов плот, метро плочки',
+      mats: { frontType: 'mdf-mat', frontColor: 'white', surface: 'flat', zones: {}, carcass: 'egger-w1000', worktop: 'wt-oak', handle: 'barblack' },
+      look: { splash: 'subway', spots: true, pendant: false, dining: false, decor: true, led: true },
+      wallH: 720,
+    },
+    {
+      name: 'Класика с рамка',
+      sub: 'Нощно синьо и крем, мрамор, кръгли дръжки',
+      mats: { frontType: 'mdf-mat', frontColor: 'navy', surface: 'shaker', zones: { wall: { frontType: 'mdf-mat', frontColor: 'cream', surface: 'shaker' } }, carcass: 'egger-w1000', worktop: 'wt-marble', handle: 'knob' },
+      look: { splash: 'marble', spots: true, pendant: false, dining: false, decor: true, led: true },
+      wallH: 720,
+    },
+  ];
+
+  function styledProject(st) {
+    const p = JSON.parse(JSON.stringify(S.project));
+    p.mats = Object.assign({}, p.mats, JSON.parse(JSON.stringify(st.mats)));
+    p.look = Object.assign({}, M.DEFAULT_LOOK, p.look, st.look);
+    if (p.room.opts.uppers !== false && p.modules.some((m) => m.row === 'wall')) p.room.opts.wallH = st.wallH;
+    return p;
   }
+  function applyStyle(i) {
+    const st = STYLES[i];
+    const p = styledProject(st);
+    apply((P) => {
+      P.mats = p.mats;
+      P.look = p.look;
+      P.room.opts.wallH = p.room.opts.wallH;
+    }, { instant: true });
+    if (M.renderMaterials) M.renderMaterials();
+    if (M.syncLook) M.syncLook();
+    M.toast('Стил „' + st.name + '“');
+    renderColors();
+  }
+
+  let styleShots = { key: '', imgs: [] };
+  function renderStyleShots() {
+    const key = JSON.stringify([S.project.room, S.project.modules.map((m) => [m.type, m.w, m.row, m.wall])]);
+    if (styleShots.key === key && styleShots.imgs.length === STYLES.length) return;
+    styleShots = { key, imgs: [] };
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;left:-6000px;top:0;width:420px;height:300px';
+    document.body.appendChild(div);
+    let v;
+    try {
+      v = new M.View3D(div, { size: [420, 300], lowRes: true, bg: '#eef0f4' });
+    } catch (e) {
+      return;
+    }
+    let i = 0;
+    const next = () => {
+      if (i >= STYLES.length || styleShots.key !== key) {
+        v.dispose();
+        div.remove();
+        return;
+      }
+      const p = styledProject(STYLES[i]);
+      M.pack(p.room, p.modules);
+      const built = M.buildProject(p);
+      v.setProject(p, built, { look: { spin: false } });
+      styleShots.imgs[i] = v.snapshot('image/jpeg', 0.82);
+      const slot = $(`#bStyles [data-i="${i}"] .simg`);
+      if (slot) slot.innerHTML = `<img src="${styleShots.imgs[i]}" alt="">`;
+      i++;
+      setTimeout(next, 30);
+    };
+    setTimeout(next, 60);
+  }
+
   function renderColors() {
     const mt = S.project.mats;
-    const ft = M.frontType(mt.frontType);
-    const curFront = ft.painted ? 'p:' + mt.frontColor : 'd:' + mt.frontDecor;
-    const sw = (key, color, grain, name, pressed) => `<button class="sw big" data-k="${key}" aria-pressed="${pressed}" title="${esc(name)}" aria-label="${esc(name)}" style="background:${grain ? `repeating-linear-gradient(90deg, ${color}, ${color} 3px, color-mix(in srgb, ${color} 82%, #5a3a1a) 4px, ${color} 6px)` : color}"></button>`;
-    $('#bMain').innerHTML = `<div class="stack"><div><h2>Избери цветовете</h2><p class="muted" style="margin:6px 0 0">Започни от готова комбинация и промени каквото искаш.</p></div>
-      <div class="themes">${THEMES.map((t, i) => `<button class="card theme" data-i="${i}">${themeArt(t.mats)}<b>${esc(t.name)}</b></button>`).join('')}</div>
+    const look = Object.assign({}, M.DEFAULT_LOOK, S.project.look);
+    const z = B.zone || 'base';
+    const zm = M.zone(mt, z);
+    const ft = M.frontType(zm.frontType);
+    const same = z !== 'base' && !(mt.zones && mt.zones[z]);
+    const curFront = ft.painted ? 'p:' + zm.frontColor : 'd:' + zm.frontDecor;
+    const sw = (key, color, grain, name, pressed) => `<button class="sw big" data-k="${key}" aria-pressed="${pressed}" title="${esc(name)}" aria-label="${esc(name)}" style="background:${grain ? `repeating-linear-gradient(90deg, ${color}, ${color} 3px, color-mix(in srgb, ${color} 82%, #3a2210) 4px, ${color} 6px)` : color}"></button>`;
+    const tog = (id, label, on) => `<label class="switch">${label}<input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
+    $('#bMain').innerHTML = `<div class="stack"><div><h2>Стил и цветове</h2><p class="muted" style="margin:6px 0 0">Виж своята кухня в модерните стилове. Избери един и промени детайлите.</p></div>
+      <div class="styles" id="bStyles">${STYLES.map((st, i) => `<button class="card stylec" data-i="${i}"><span class="simg">${styleShots.imgs[i] ? `<img src="${styleShots.imgs[i]}" alt="">` : '<span class="shimmer" style="display:block;height:100%;border-radius:0"></span>'}</span><span class="smeta"><b>${esc(st.name)}</b><span class="small muted">${esc(st.sub)}</span></span></button>`).join('')}</div>
       <div class="card pad stack colorbox">
-        <div><div class="row" style="justify-content:space-between"><b>Фронтове</b><span class="small muted" id="bFrontName"></span></div><div class="swatches" id="bFronts" style="margin-top:10px">${FRONTS.map((f) => sw(f.key, f.color, f.grain, f.name, f.key === curFront)).join('')}</div>
-        ${ft.painted ? `<div class="seg" id="bFinish" style="margin-top:12px"><button data-k="mdf-mat" aria-pressed="${mt.frontType === 'mdf-mat'}">Мат</button><button data-k="mdf-gloss" aria-pressed="${mt.frontType === 'mdf-gloss'}">Гланц</button></div>` : ''}</div>
+        <div class="row" style="justify-content:space-between"><b>Фронтове</b><div class="seg" id="bZone">${Object.entries(M.ZONES).map(([k, n]) => `<button data-z="${k}" aria-pressed="${k === z}">${n}</button>`).join('')}</div></div>
+        ${z !== 'base' ? `<label class="switch" style="padding-top:0">Като долните<input type="checkbox" id="bSame" ${same ? 'checked' : ''}></label>` : ''}
+        <div ${same ? 'hidden' : ''}>
+          <div class="swatches" id="bFronts">${FRONTS.map((f) => sw(f.key, f.color, f.grain, f.name, f.key === curFront)).join('')}</div>
+          <div class="small muted" style="margin-top:8px">${esc(M.frontName(mt, z))}</div>
+          ${ft.painted ? `<div class="row" style="margin-top:12px"><div class="seg" id="bSurface">${M.CATALOG.surfaces.map((s) => `<button data-k="${s.key}" aria-pressed="${zm.surface === s.key}">${s.name}</button>`).join('')}</div><div class="seg" id="bFinish"><button data-k="mdf-mat" aria-pressed="${zm.frontType === 'mdf-mat'}">Мат</button><button data-k="mdf-gloss" aria-pressed="${zm.frontType === 'mdf-gloss'}">Гланц</button></div></div>` : ''}
+        </div>
         <div><div class="row" style="justify-content:space-between"><b>Работен плот</b><span class="small muted">${esc(M.worktop(mt.worktop).name)}</span></div><div class="swatches" id="bWt" style="margin-top:10px">${M.CATALOG.worktops.map((w) => sw(w.key, w.color, w.grain, w.name, w.key === mt.worktop)).join('')}</div></div>
         <div><b>Дръжки</b><div class="handles" id="bHandles">${[
-          ['bar', 'Лайсна', '<rect x="14" y="27" width="36" height="6" rx="3" fill="#9a9ca0"/>'],
-          ['knob', 'Кръгла', '<circle cx="32" cy="30" r="6" fill="#2b2b2e"/>'],
-          ['tipon', 'Без дръжки', '<path d="M26 30h12" stroke="#c7c7cc" stroke-width="2" stroke-dasharray="3 3"/>'],
+          ['gola', 'Gola', `<rect x="6" y="6" width="52" height="7" fill="#2a2a2d"/>`],
+          ['long', 'Дълга', `<rect x="44" y="14" width="4" height="34" rx="2" fill="#1f1f22"/>`],
+          ['barblack', 'Черна', `<rect x="16" y="27" width="32" height="5" rx="2.5" fill="#1f1f22"/>`],
+          ['bar', 'Инокс', `<rect x="16" y="27" width="32" height="5" rx="2.5" fill="#9a9ca0"/>`],
+          ['knob', 'Кръгла', `<circle cx="32" cy="30" r="5" fill="#1f1f22"/>`],
+          ['tipon', 'Без', `<path d="M26 30h12" stroke="#c7c7cc" stroke-width="2" stroke-dasharray="3 3"/>`],
         ]
           .map(([k, n, svg]) => `<button data-k="${k}" aria-pressed="${mt.handle === k}"><svg viewBox="0 0 64 60"><rect x="6" y="6" width="52" height="48" rx="6" fill="${frontFill()}" stroke="rgba(0,0,0,.15)"/>${svg}</svg><span>${n}</span></button>`)
           .join('')}</div></div>
+        <div><b>Облицовка на стената</b><div class="seg" id="bSplash" style="margin-top:10px">${M.SPLASH.map((x) => `<button data-k="${x.key}" aria-pressed="${look.splash === x.key}">${x.name}</button>`).join('')}</div></div>
+        <div><b>Атмосфера</b><div style="margin-top:4px">${tog('bkSpots', 'Лунички в тавана', look.spots)}${tog('bkLed', 'LED под горните шкафове', look.led)}${tog('bkPend', 'Лампа-пръстен', look.pendant)}${tog('bkDining', 'Маса със столове', look.dining)}${tog('bkEve', 'Вечерно осветление', look.evening)}</div></div>
         <div><div class="row" style="justify-content:space-between"><b>Корпус (отвътре)</b><span class="small muted">${esc(M.board(mt.carcass).brand + ' ' + M.board(mt.carcass).name)}</span></div><div class="swatches" id="bCarc" style="margin-top:10px">${CARCASS.map((k) => {
           const b = M.board(k);
           return sw(k, b.color, b.grain, b.brand + ' ' + b.name, k === mt.carcass);
         }).join('')}</div></div>
       </div></div>`;
-    const cur = FRONTS.find((f) => f.key === curFront);
-    $('#bFrontName').textContent = cur ? cur.name : '';
-    const set = (o) => {
-      apply((p) => Object.assign(p.mats, o));
+    renderStyleShots();
+    const reRender = () => {
       if (M.renderMaterials) M.renderMaterials();
+      if (M.syncLook) M.syncLook();
       renderColors();
     };
-    $$('.theme').forEach((b) =>
+    const setZone = (o) => {
+      apply((p) => {
+        if (z === 'base') Object.assign(p.mats, o);
+        else {
+          p.mats.zones = p.mats.zones || {};
+          p.mats.zones[z] = Object.assign(M.zone(p.mats, z), p.mats.zones[z] || {}, o);
+        }
+      });
+      reRender();
+    };
+    const set = (o) => {
+      apply((p) => Object.assign(p.mats, o));
+      reRender();
+    };
+    const setLook = (o) => {
+      apply((p) => (p.look = Object.assign({}, M.DEFAULT_LOOK, p.look, o)), { instant: true });
+      reRender();
+    };
+    $$('.stylec').forEach((b) => b.addEventListener('click', () => applyStyle(+b.dataset.i)));
+    $$('#bZone button').forEach((b) =>
       b.addEventListener('click', () => {
-        set(THEMES[+b.dataset.i].mats);
-        M.toast('Комбинация „' + THEMES[+b.dataset.i].name + '“');
+        B.zone = b.dataset.z;
+        renderColors();
       })
     );
+    const sameEl = $('#bSame');
+    if (sameEl)
+      sameEl.addEventListener('change', (e) => {
+        apply((p) => {
+          p.mats.zones = p.mats.zones || {};
+          if (e.target.checked) delete p.mats.zones[z];
+          else p.mats.zones[z] = M.zone(p.mats, 'base');
+        });
+        reRender();
+      });
     $$('#bFronts .sw').forEach((b) =>
       b.addEventListener('click', () => {
         const f = FRONTS.find((x) => x.key === b.dataset.k);
         const o = Object.assign({}, f.set);
-        if (o.frontType === 'mdf-mat' && S.project.mats.frontType === 'mdf-gloss') o.frontType = 'mdf-gloss';
-        set(o);
+        if (o.frontType === 'mdf-mat' && zm.frontType === 'mdf-gloss') o.frontType = 'mdf-gloss';
+        setZone(o);
       })
     );
-    $$('#bFinish button').forEach((b) => b.addEventListener('click', () => set({ frontType: b.dataset.k })));
+    $$('#bSurface button').forEach((b) => b.addEventListener('click', () => setZone({ surface: b.dataset.k })));
+    $$('#bFinish button').forEach((b) => b.addEventListener('click', () => setZone({ frontType: b.dataset.k })));
     $$('#bWt .sw').forEach((b) => b.addEventListener('click', () => set({ worktop: b.dataset.k })));
     $$('#bHandles button').forEach((b) => b.addEventListener('click', () => set({ handle: b.dataset.k })));
     $$('#bCarc .sw').forEach((b) => b.addEventListener('click', () => set({ carcass: b.dataset.k })));
+    $$('#bSplash button').forEach((b) => b.addEventListener('click', () => setLook({ splash: b.dataset.k })));
+    for (const [id, k] of [
+      ['bkSpots', 'spots'],
+      ['bkLed', 'led'],
+      ['bkPend', 'pendant'],
+      ['bkDining', 'dining'],
+      ['bkEve', 'evening'],
+    ])
+      $('#' + id).addEventListener('change', (e) => setLook({ [k]: e.target.checked }));
   }
 
   /* ---------- 5. Готово ---------- */
@@ -742,7 +981,7 @@
       <ul class="facts">
         <li><span>Форма</span><b>${r.shape === 'L' ? 'Ъглова' : 'Права'}, ${r.wallA / 10}${r.shape === 'L' ? ' × ' + r.wallB / 10 : ''} см</b></li>
         <li><span>Шкафове</span><b>${mods.length} бр.${count('tall-fridge') ? ' · хладилник в колона' : ''}${count('base-dw') ? ' · съдомиялна' : ''}</b></li>
-        <li><span>Фронтове</span><b>${esc(cur ? cur.name : '')}${ft.painted ? (ft.gloss ? ', гланц' : ', мат') : ''}</b></li>
+        <li><span>Фронтове</span><b>${esc(M.frontsSummary(mt))}</b></li>
         <li><span>Плот</span><b>${esc(M.worktop(mt.worktop).name.replace('Ламиниран плот 38 мм, ', ''))}</b></li>
         <li><span>Дръжки</span><b>${esc(M.handle(mt.handle).name)}</b></li>
         <li><span>Монтаж</span><b>~ ${S.hours || '—'} часа</b></li>

@@ -11,6 +11,8 @@
       { key: 'egger-h1145', brand: 'Egger', name: 'H1145 ST10 Дъб Бардолино натурален', color: '#C29467', grain: true, price: 79 },
       { key: 'egger-h3303', brand: 'Egger', name: 'H3303 ST10 Дъб Хамилтън натурален', color: '#B98A5C', grain: true, price: 79 },
       { key: 'egger-u999', brand: 'Egger', name: 'U999 ST2 Черно', color: '#26272A', grain: false, price: 75 },
+      { key: 'egger-h3734', brand: 'Egger', name: 'H3734 ST9 Орех Дижон натурален', color: '#7E5D45', grain: true, price: 86 },
+      { key: 'egger-u702', brand: 'Egger', name: 'U702 ST9 Кашмир сив', color: '#CFC7BA', grain: false, price: 74 },
       { key: 'krono-white', brand: 'Kronospan', name: 'Бяло гладко', color: '#F3F3EF', grain: false, price: 56 },
       { key: 'krono-sonoma', brand: 'Kronospan', name: 'Дъб Сонома', color: '#D3B489', grain: true, price: 58 },
       { key: 'kasta-white', brand: 'Kastamonu', name: 'Бяло', color: '#F2F2EE', grain: false, price: 52 },
@@ -30,6 +32,10 @@
       { key: 'sage', name: 'Маслинено', color: '#7C8466' },
       { key: 'navy', name: 'Нощно синьо', color: '#2F3B52' },
       { key: 'graphite', name: 'Графит', color: '#46494E' },
+      { key: 'sand', name: 'Пясъчно', color: '#E1D8C9' },
+      { key: 'cream', name: 'Крем', color: '#EEE8DD' },
+      { key: 'black', name: 'Черно мат', color: '#232326' },
+      { key: 'terracotta', name: 'Глина', color: '#B7795C' },
     ],
 
     hardwareBrands: [
@@ -48,13 +54,24 @@
       { key: 'bar', name: 'Дръжка-лайсна 160 мм, инокс' },
       { key: 'knob', name: 'Кръгла дръжка, черна' },
       { key: 'tipon', name: 'Без дръжки (натисни-отвори)' },
+      { key: 'gola', name: 'Gola профил (без дръжки), колони с дълга дръжка' },
+      { key: 'long', name: 'Дълга дръжка, черна' },
+      { key: 'barblack', name: 'Дръжка-лайсна, черна' },
     ],
 
     worktops: [
       { key: 'wt-oak', name: 'Ламиниран плот 38 мм, дъб', color: '#B8875A', grain: true, perM: 48 },
       { key: 'wt-marble', name: 'Ламиниран плот 38 мм, бял мрамор', color: '#E9E7E3', grain: false, perM: 52 },
       { key: 'wt-concrete', name: 'Ламиниран плот 38 мм, бетон', color: '#9C9B97', grain: false, perM: 45 },
-      { key: 'wt-compact', name: 'Компакт плот 12 мм, черен', color: '#202124', grain: false, perM: 175 },
+      { key: 'wt-compact', name: 'Компакт плот 12 мм, черен', color: '#202124', grain: false, perM: 175, thin: true },
+      { key: 'wt-white', name: 'Компакт плот 12 мм, бял', color: '#F0F0EE', grain: false, perM: 175, thin: true },
+      { key: 'wt-ceramic', name: 'Керамичен плот 12 мм, мрамор', color: '#ECEBE7', grain: false, perM: 260, thin: true, marble: true },
+    ],
+    // Повърхност на боядисания МДФ фронт: добавка към цената на м²
+    surfaces: [
+      { key: 'flat', name: 'Гладък', extra: 0 },
+      { key: 'fluted', name: 'Рифелен', extra: 55 },
+      { key: 'shaker', name: 'Рамка', extra: 25 },
     ],
   };
 
@@ -79,6 +96,9 @@
     handle_bar: { label: 'Дръжка-лайсна 160 мм', unit: 'бр', v: 4.5 },
     handle_knob: { label: 'Кръгла дръжка', unit: 'бр', v: 2.8 },
     handle_tipon: { label: 'Механизъм натисни-отвори', unit: 'бр', v: 8 },
+    handle_gola: { label: 'Gola профил с ъгли (на фронт)', unit: 'бр', v: 9 },
+    handle_long: { label: 'Дълга дръжка, черна', unit: 'бр', v: 22 },
+    handle_barblack: { label: 'Дръжка-лайсна, черна', unit: 'бр', v: 5 },
     shelfPin: { label: 'Рафтоносач', unit: 'бр', v: 0.08 },
     confirmat: { label: 'Конфирмат 7×50', unit: 'бр', v: 0.06 },
     screw: { label: 'Винт 4×16', unit: 'бр', v: 0.02 },
@@ -99,6 +119,7 @@
     hanger: 'Окачвач',
     rail: 'Шина за окачване (м)',
     handle: 'Дръжка / механизъм',
+    handleLong: 'Дълга дръжка за колона',
     shelfPin: 'Рафтоносач',
     confirmat: 'Конфирмат 7×50',
     screw: 'Винт 4×16',
@@ -110,4 +131,32 @@
   M.paint = (key) => M.CATALOG.paintColors.find((c) => c.key === key) || M.CATALOG.paintColors[0];
   M.worktop = (key) => M.CATALOG.worktops.find((w) => w.key === key) || M.CATALOG.worktops[0];
   M.handle = (key) => M.CATALOG.handles.find((h) => h.key === key) || M.CATALOG.handles[0];
+  M.surface = (key) => M.CATALOG.surfaces.find((s) => s.key === key) || M.CATALOG.surfaces[0];
+  // Фронтове по зони: base (долни), wall (горни), tall (колони). Без настройка зоната следва долните.
+  M.ZONES = { base: 'Долни', wall: 'Горни', tall: 'Колони' };
+  M.zoneOf = (mod) => (M.isTall && M.isTall(mod.type) ? 'tall' : mod.row === 'wall' ? 'wall' : 'base');
+  M.zone = (mats, z) => {
+    const o = { frontType: mats.frontType, frontColor: mats.frontColor, frontDecor: mats.frontDecor, surface: mats.surface || 'flat' };
+    if (z && z !== 'base' && mats.zones && mats.zones[z]) Object.assign(o, mats.zones[z]);
+    if (!M.frontType(o.frontType).painted) o.surface = 'flat';
+    return o;
+  };
+  M.frontName = (mats, z) => {
+    const o = M.zone(mats, z);
+    const ft = M.frontType(o.frontType);
+    if (!ft.painted) return M.board(o.frontDecor).name.replace(/^[A-Z]\d+ ST\d+ /, '');
+    const sf = M.surface(o.surface);
+    return M.paint(o.frontColor).name + ', ' + (ft.gloss ? 'гланц' : 'мат') + (sf.key !== 'flat' ? ', ' + sf.name.toLowerCase() : '');
+  };
+  M.frontsSummary = (mats) => {
+    const b = M.frontName(mats, 'base'),
+      w = M.frontName(mats, 'wall'),
+      t = M.frontName(mats, 'tall');
+    if (w === b && t === b) return b;
+    return 'долни ' + b + (w !== b ? '; горни ' + w : '') + (t !== b ? '; колони ' + t : '');
+  };
+  M.frontColorHex = (mats, z) => {
+    const o = M.zone(mats, z);
+    return M.frontType(o.frontType).painted ? M.paint(o.frontColor).color : M.board(o.frontDecor).color;
+  };
 })();

@@ -32,6 +32,8 @@
     'base-corner': { label: 'Ъглов долен шкаф', row: 'base' },
     'tall-fridge': { label: 'Колона за вграден хладилник', row: 'base', tall: true },
     'tall-oven': { label: 'Колона за фурна', row: 'base', tall: true },
+    'tall-oven2': { label: 'Колона за фурна и микровълнова', row: 'base', tall: true },
+    'tall-pantry': { label: 'Колона килер', row: 'base', tall: true },
     'wall-door': { label: 'Горен шкаф с врати', row: 'wall' },
     'wall-hood': { label: 'Горен шкаф с вграден аспиратор', row: 'wall' },
     filler: { label: 'Планка', row: 'any' },
@@ -42,8 +44,8 @@
 
   /* ---------- Размери според настройките на стаята ---------- */
   M.dims = function (room) {
-    const wallH = room.opts.wallH || 720;
     const upperBottom = room.opts.upperBottom || 1440;
+    const wallH = room.opts.wallH === 'ceil' ? Math.max(720, Math.min(1400, room.height - upperBottom)) : +room.opts.wallH || 720;
     return {
       wallH,
       upperBottom,
@@ -360,7 +362,9 @@
       z1 = HDF + d; // корпус
     const zf0 = z1,
       zf1 = z1 + T; // фронт
-    const frontPDCH = mats.frontType === 'pdch';
+    const zone = M.zoneOf(mod);
+    const zm = M.zone(mats, zone);
+    const frontPDCH = zm.frontType === 'pdch';
     const fe = frontPDCH ? E(2, 2, 2, 2) : E();
     const parts = [];
     const hw = {};
@@ -371,11 +375,11 @@
     if (t === 'gap') return { parts, hw, steps, visuals, box };
 
     const front = (name, x0, y0, x1, y1, role = 'door') =>
-      parts.push(P(name, 'front', y1 - y0, x1 - x0, [x0, y0, zf0, x1, y1, zf1], { edges: Object.assign({}, fe), role }));
+      parts.push(P(name, 'front', y1 - y0, x1 - x0, [x0, y0, zf0, x1, y1, zf1], { edges: Object.assign({}, fe), role, zone }));
 
     if (t === 'filler') {
       const zz = mod.row === 'wall' ? [K.HDF + K.wallD, K.HDF + K.wallD + T] : [zf0, zf1];
-      parts.push(P('Планка', 'front', h - 4, w, [0, 2, zz[0], w, h - 2, zz[1]], { edges: Object.assign({}, fe), role: 'filler' }));
+      parts.push(P('Планка', 'front', h - 4, w, [0, 2, zz[0], w, h - 2, zz[1]], { edges: Object.assign({}, fe), role: 'filler', zone }));
       addHw('screw', 4);
       steps.push({ t: 'Захвани планката към съседния шкаф с 4 винта 4×16 отвътре.', p: [0], hw: { screw: 4 } });
       return { parts, hw, steps, visuals, box };
@@ -547,10 +551,49 @@
         break;
       }
       case 'wall-door':
-        shelf(Math.round(h / 2) - 9);
-        if (h > 800) shelf(Math.round(h * 0.72));
-        hingeCount = doors(2, h - 2);
+        if (h > 1000) {
+          // до тавана: основни врати + горен ред врати (мезонет)
+          const yS = h - 380;
+          shelf(Math.round(yS / 2) - 9);
+          shelf(yS - T, 'Рафт неподвижен', true);
+          hingeCount = doors(2, yS - gap / 2, 'Врата') + doors(yS + gap / 2, h - 2, 'Врата горна');
+        } else {
+          shelf(Math.round(h / 2) - 9);
+          if (h > 800) shelf(Math.round(h * 0.72));
+          hingeCount = doors(2, h - 2);
+        }
         break;
+      case 'tall-pantry': {
+        const ySplit = Math.min(h - 360, 1480);
+        [360, 720, 1080].forEach((y) => shelf(y));
+        shelf(ySplit, 'Рафт неподвижен', true);
+        if (h - ySplit > 700) shelf(ySplit + Math.round((h - ySplit) / 2));
+        hingeCount = doors(2, ySplit - gap / 2, 'Врата') + doors(ySplit + gap / 2, h - 2, 'Врата горна');
+        break;
+      }
+      case 'tall-oven2': {
+        // фурна 595 мм + компактна фурна/микровълнова 455 мм една над друга
+        shelf(720, 'Рафт неподвижен', true);
+        const y2 = 720 + 18 + 595;
+        shelf(y2, 'Рафт неподвижен', true);
+        const y3 = y2 + 18 + 455;
+        shelf(y3, 'Рафт неподвижен', true);
+        front('Чело чекмедже', gap / 2, 2, w - gap / 2, 357, 'drawer');
+        front('Чело чекмедже 2', gap / 2, 360, w - gap / 2, 718, 'drawer');
+        fronts.push(parts.length - 2, parts.length - 1);
+        addHw('drawer', 2);
+        drawerCount = 2;
+        if (h - 2 - (y3 + 18 + gap) > 150) {
+          front('Врата горна', gap / 2, y3 + 18 + gap, w - gap / 2, h - 2, 'door');
+          fronts.push(parts.length - 1);
+          addHw('hinge', 2);
+          hingeCount = 2;
+        }
+        addHw('screw', 32);
+        visuals.push({ kind: 'oven', box: [T + 2, 738, z1 - 540, w - T - 2, 738 + 595, z1 + T + 2] });
+        visuals.push({ kind: 'oven', box: [T + 2, y2 + 18, z1 - 540, w - T - 2, y2 + 18 + 455, z1 + T + 2], compact: true });
+        break;
+      }
       case 'wall-hood': {
         shelf(282, 'Рафт над аспиратора', true);
         front('Врата', gap / 2, 182, w - gap / 2, h - 2);
@@ -563,7 +606,7 @@
       }
     }
 
-    if (mats.handle === 'tipon') addHw('handle', fronts.length);
+    if (mats.handle === 'gola' && tall) addHw('handleLong', fronts.filter((i) => parts[i].role === 'door').length);
     else addHw('handle', fronts.length);
     addHw('screw', fronts.length * 2);
 
@@ -722,18 +765,20 @@
   M.materialGroups = function (project, built) {
     const { mats } = project;
     const groups = {};
-    const ft = M.frontType(mats.frontType);
-    const g = (key, label, kind, grain) => (groups[key] = groups[key] || { key, label, kind, grain, items: [] });
+    const g = (key, label, kind, grain, extra) => (groups[key] = groups[key] || Object.assign({ key, label, kind, grain, items: [] }, extra || {}));
     for (const p of built.parts) {
       let key;
       if (p.mat === 'hdf') {
         key = 'hdf';
         g(key, M.CATALOG.hdf.name, 'hdf', false);
-      } else if (p.mat === 'front' && ft.painted) {
-        key = 'mdf';
-        g(key, ft.name + ' — ' + M.paint(mats.frontColor).name, 'mdf', false);
+      } else if (p.mat === 'front' && M.frontType(M.zone(mats, p.zone).frontType).painted) {
+        const zm = M.zone(mats, p.zone);
+        const ft = M.frontType(zm.frontType);
+        const sf = M.surface(zm.surface);
+        key = 'mdf:' + zm.frontType + ':' + zm.frontColor + ':' + sf.key;
+        g(key, `${ft.name}${sf.key !== 'flat' ? ', ' + sf.name.toLowerCase() : ''} — ${M.paint(zm.frontColor).name}`, 'mdf', false, { frontType: zm.frontType, surface: sf.key });
       } else {
-        const bk = p.mat === 'front' ? mats.frontDecor : mats.carcass;
+        const bk = p.mat === 'front' ? M.zone(mats, p.zone).frontDecor : mats.carcass;
         const b = M.board(bk);
         key = 'board:' + bk;
         g(key, `ПДЧ 18 мм ${b.brand} ${b.name}`, 'board', b.grain);
@@ -810,7 +855,7 @@
         c += L('Материали', g.label, g.nest.sheets.length, 'лист', M.CATALOG.hdf.price);
         c += L('Услуги', 'Разкрой HDF', g.nest.sheets.length, 'лист', pv('cutHdf'));
       } else if (g.kind === 'mdf') {
-        c += L('Материали', 'Фронтове ' + g.label, Math.round(g.area * 100) / 100, 'м²', M.frontType(mats.frontType).perM2);
+        c += L('Материали', 'Фронтове ' + g.label, Math.round(g.area * 100) / 100, 'м²', M.frontType(g.frontType).perM2 + M.surface(g.surface).extra);
       }
       groupCost[g.key] = c;
       matCost += c;
@@ -829,12 +874,14 @@
       if (k === 'hinge') return pv('hinge_' + mats.hardware);
       if (k === 'drawer') return pv('drawer_' + mats.hardware);
       if (k === 'handle') return pv('handle_' + mats.handle);
+      if (k === 'handleLong') return pv('handle_long');
       return pv(k);
     };
     const hwName = (k) => {
       if (k === 'hinge') return prices['hinge_' + mats.hardware].label;
       if (k === 'drawer') return prices['drawer_' + mats.hardware].label;
       if (k === 'handle') return prices['handle_' + mats.handle].label;
+      if (k === 'handleLong') return prices.handle_long.label;
       return prices[k] ? prices[k].label : k;
     };
     let hwCost = 0;
