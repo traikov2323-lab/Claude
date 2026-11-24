@@ -79,6 +79,73 @@
     }
   };
 
+  /* ---------- AI: Claude в Claude.ai или сървърът на сайта ---------- */
+  M.aiMode = async function () {
+    const sample = await M.cap('sample');
+    if (sample) {
+      const lim = await sample.limits().catch(() => null);
+      if (lim && lim.images) return 'claude';
+    }
+    if (M.platform && M.platform.hosted) return 'server';
+    return null;
+  };
+  const blobToB64 = (blob) =>
+    new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(String(r.result).split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(blob);
+    });
+  const parseJSON = (text) => {
+    const t = String(text || '').trim();
+    try {
+      return JSON.parse(t);
+    } catch (e) {}
+    const f = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (f) {
+      try {
+        return JSON.parse(f[1]);
+      } catch (e) {}
+    }
+    const a = t.indexOf('{'),
+      b = t.lastIndexOf('}');
+    if (a >= 0 && b > a) {
+      try {
+        return JSON.parse(t.slice(a, b + 1));
+      } catch (e) {}
+    }
+    throw { code: 'invalid_json' };
+  };
+  M.aiJSON = async function (task, prompt, blob, signal) {
+    const mode = await M.aiMode();
+    if (mode === 'claude') {
+      const sample = await M.cap('sample');
+      return sample.json(prompt, { images: [blob], signal, modelTier: 'default' });
+    }
+    if (mode === 'server') {
+      const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ task, prompt, image: await blobToB64(blob), mediaType: blob.type || 'image/jpeg' }), signal });
+      if (!r.ok) throw { code: r.status === 429 ? 'rate_limited' : r.status === 503 ? 'unavailable' : 'server' };
+      const { text } = await r.json();
+      return parseJSON(text);
+    }
+    throw { code: 'unavailable' };
+  };
+  M.aiError = (e) => {
+    const code = e && e.code;
+    return code === 'not_granted'
+      ? 'Достъпът до AI не е разрешен.'
+      : code === 'rate_limited'
+      ? 'Твърде много заявки. Опитай отново след минута.'
+      : code === 'invalid_json'
+      ? 'AI не успя да разчете снимката. Опитай с по-ясна снимка.'
+      : code === 'unavailable'
+      ? 'AI не е достъпен тук. Отвори Модулия на modulia-bg.netlify.app или в Claude.'
+      : code === 'cancelled'
+      ? 'Спряно.'
+      : 'AI не отговори. Опитай отново.';
+  };
+  M.shrinkImage = (f) => shrinkImage(f);
+
   M.qrSvg = function (text) {
     const q = qrcode(0, 'M');
     q.addData(text);
@@ -250,6 +317,7 @@
     if (!opts.stay) M.setView(S.mode === 'pro' ? 'project' : 'builder');
   }
   M.loadProject = loadProject;
+  M.cleanRoom = (r) => cleanRoom(r);
 
   /* ---------- AI от скица ---------- */
   let aiBlob = null;
@@ -505,30 +573,20 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       btn.disabled = true;
       st.innerHTML = '<span class="spinner"></span> AI разчита изображението. Обикновено отнема 20–60 секунди.';
       try {
-        const sample = await M.cap('sample');
-        const limits = sample ? await sample.limits().catch(() => null) : null;
-        if (!sample || !limits || !limits.images) {
+        if (!(await M.aiMode())) {
           if (aiIsSample) {
             await showAiResult(SAMPLE_RESULT);
-            st.textContent = 'Показан е демо резултат. AI разчитането на собствени снимки работи, когато Модулия е отворена в Claude.';
-          } else st.textContent = 'AI разчитането работи, когато Модулия е отворена в Claude. Пробвай примерната скица, за да видиш как работи.';
+            st.textContent = 'Показан е демо резултат. AI работи на modulia-bg.netlify.app и в Claude.';
+          } else st.textContent = M.aiError({ code: 'unavailable' });
           return;
         }
         aiCtl = new AbortController();
-        const res = await sample.json(aiPrompt($('#aiNotes').value.trim()), { images: [aiBlob], signal: aiCtl.signal, modelTier: 'default' });
+        const res = await M.aiJSON('sketch', aiPrompt($('#aiNotes').value.trim()), aiBlob, aiCtl.signal);
         if (!res || !res.wallA) throw { code: 'invalid_json' };
         await showAiResult(res);
         st.textContent = 'Готово. Провери размерите и избери вариант.';
       } catch (e) {
-        const code = e && e.code;
-        st.textContent =
-          code === 'not_granted'
-            ? 'Достъпът до AI не е разрешен.'
-            : code === 'rate_limited'
-            ? 'Твърде много заявки. Опитай отново след малко.'
-            : code === 'invalid_json'
-            ? 'AI не успя да разчете скицата. Снимай я по-отблизо и с ясни числа.'
-            : 'AI не отговори. Опитай отново.';
+        st.textContent = M.aiError(e);
       } finally {
         btn.disabled = false;
       }
@@ -738,6 +796,39 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       }
     });
   });
+
+  M.arLoad = function (blob, corners) {
+    const st = $('#arStage');
+    if (AR.img) AR.img.remove();
+    const img = new Image();
+    img.className = 'photo';
+    img.alt = 'Снимка на твоята кухня';
+    img.onload = () => {
+      st.style.minHeight = '0';
+      AR.off = { x: 0, y: 0 };
+      $('#arRecal').disabled = false;
+      const ok = corners && corners.left && corners.right && corners.right[0] > corners.left[0];
+      if (ok) {
+        AR.taps = [
+          { fx: corners.left[0], fy: corners.left[1] },
+          { fx: corners.right[0], fy: corners.right[1] },
+        ];
+        arEnsureView();
+        AR.ready = true;
+        arRender();
+        arHint('Новата кухня е поставена върху снимката. Ако не съвпада, маркирай ъглите отново или влачи.');
+      } else {
+        AR.taps = [];
+        AR.ready = false;
+        if (AR.ov) AR.ov.hidden = true;
+        arHint('Натисни долния ЛЯВ ъгъл на стената, където ще е кухнята.');
+      }
+      arMarks();
+    };
+    img.src = URL.createObjectURL(blob);
+    st.insertBefore(img, st.firstChild);
+    AR.img = img;
+  };
 
   /* ---------- Сглобяване ---------- */
   const ASM = { view: null, modId: null, step: 0, part: null, explode: 0, playing: false, timer: 0 };

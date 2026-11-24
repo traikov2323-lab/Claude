@@ -99,6 +99,7 @@
     return p;
   }
   // от автоматично към ръчно подреждане: махаме празните места над колоните (пакетирането ги заобикаля само)
+  M.toManual = (p) => toManual(p);
   function toManual(p) {
     const talls = p.modules.filter((m) => M.isTall(m.type));
     p.modules = p.modules.filter((m) => !(m.type === 'gap' && m.row === 'wall' && talls.some((t) => t.wall === m.wall && Math.abs(t.x - m.x) < 2)));
@@ -249,10 +250,12 @@
     $('#bMain').innerHTML = `<div class="stack"><div><h2>С какво започваме?</h2><p class="muted" style="margin:6px 0 0">Избери готова кухня и я промени, или започни от празна стена.</p></div>
       <div class="tgrid" id="bTpl">
         <button class="card tcard zero" data-t="zero"><span class="tz"><svg class="ic lg"><use href="#i-room"/></svg></span><b>Започни от нулата</b><span class="muted small">Въведи размерите си и подреди шкафовете сам</span></button>
+        <button class="card tcard zero photo" data-t="photo"><span class="tz"><svg class="ic lg"><use href="#i-sparkles"/></svg></span><b>Кухня от снимка</b><span class="muted small">Качи снимка на кухня, която харесваш, и виж я в своята стая</span></button>
         ${TEMPLATES.map((t, i) => `<button class="card tcard" data-t="${i}"><span class="timg">${B.thumbs && B.thumbs[i] ? `<img src="${B.thumbs[i].img}" alt="">` : '<span class="shimmer" style="display:block;height:100%"></span>'}</span><span class="tmeta"><b>${esc(t.name)}</b><span class="muted small">${esc(t.sub)}</span></span>${B.thumbs && B.thumbs[i] ? `<span class="tprice">от ${M.eur(B.thumbs[i].price)}</span>` : ''}</button>`).join('')}
       </div></div>`;
     $$('#bTpl [data-t]').forEach((b) =>
       b.addEventListener('click', () => {
+        if (b.dataset.t === 'photo') return M.setView('photo');
         if (b.dataset.t === 'zero') {
           const p = M.defaultProject();
           p.room.features = [];
@@ -807,6 +810,52 @@
     },
   ];
 
+  // палитрата + цветът от снимката, ако има такъв
+  function frontsFor(zm) {
+    const list = FRONTS.slice();
+    if (M.frontType(zm.frontType).painted && String(zm.frontColor || '')[0] === '#') list.unshift({ key: 'p:' + zm.frontColor, name: 'Цвят от снимката', color: zm.frontColor, set: { frontType: 'mdf-mat', frontColor: zm.frontColor } });
+    return list;
+  }
+  M.STYLES = STYLES;
+
+  // Бързи корекции (за прегледа върху снимка): стил, цвят по зони, плот, дръжки
+  M.quickPanel = function (host) {
+    if (!host) return;
+    const mt = S.project.mats;
+    const z = B.qzone || 'base';
+    const zm = M.zone(mt, z);
+    const cur = M.frontType(zm.frontType).painted ? 'p:' + zm.frontColor : 'd:' + zm.frontDecor;
+    const sw = (key, color, grain, name, pressed) => `<button class="sw" data-k="${key}" aria-pressed="${pressed}" title="${esc(name)}" aria-label="${esc(name)}" style="background:${grain ? `repeating-linear-gradient(90deg, ${color}, ${color} 3px, color-mix(in srgb, ${color} 82%, #3a2210) 4px, ${color} 6px)` : color}"></button>`;
+    host.innerHTML = `<div class="stack" style="gap:12px">
+      <div><div class="lbl" style="margin-bottom:6px">Стил</div><div class="row" id="qStyles">${STYLES.map((st, i) => `<button class="btn sm" data-i="${i}">${esc(st.name)}</button>`).join('')}</div></div>
+      <div><div class="row" style="justify-content:space-between;margin-bottom:6px"><span class="lbl">Фронтове</span><div class="seg" id="qZone">${Object.entries(M.ZONES).map(([k, n]) => `<button data-z="${k}" aria-pressed="${k === z}">${n}</button>`).join('')}</div></div>
+      <div class="swatches" id="qFronts">${frontsFor(zm).map((f) => sw(f.key, f.color, f.grain, f.name, f.key === cur)).join('')}</div><div class="small muted" style="margin-top:6px">${esc(M.frontName(mt, z))}</div></div>
+      <div><div class="lbl" style="margin-bottom:6px">Плот</div><div class="swatches" id="qWt">${M.CATALOG.worktops.map((w) => sw(w.key, w.color, w.grain, w.name, w.key === mt.worktop)).join('')}</div></div>
+      <div><div class="lbl" style="margin-bottom:6px">Дръжки</div><div class="seg" id="qHandle">${[['gola', 'Gola'], ['long', 'Дълга'], ['barblack', 'Черна'], ['bar', 'Инокс'], ['knob', 'Кръгла'], ['tipon', 'Без']].map(([k, n]) => `<button data-k="${k}" aria-pressed="${mt.handle === k}">${n}</button>`).join('')}</div></div>
+      <div class="row"><button class="btn sm" id="qCabs">Промени шкафовете</button><button class="btn sm" id="qMore">Всички цветове</button></div>
+    </div>`;
+    const redo = () => M.quickPanel(host);
+    $$('#qStyles button', host).forEach((b) => b.addEventListener('click', () => (applyStyle(+b.dataset.i), redo())));
+    $$('#qZone button', host).forEach((b) => b.addEventListener('click', () => ((B.qzone = b.dataset.z), redo())));
+    $$('#qFronts .sw', host).forEach((b) =>
+      b.addEventListener('click', () => {
+        const f = frontsFor(zm).find((x) => x.key === b.dataset.k);
+        apply((p) => {
+          if (z === 'base') Object.assign(p.mats, f.set);
+          else {
+            p.mats.zones = p.mats.zones || {};
+            p.mats.zones[z] = Object.assign(M.zone(p.mats, z), p.mats.zones[z] || {}, f.set);
+          }
+        });
+        redo();
+      })
+    );
+    $$('#qWt .sw', host).forEach((b) => b.addEventListener('click', () => (apply((p) => (p.mats.worktop = b.dataset.k)), redo())));
+    $$('#qHandle button', host).forEach((b) => b.addEventListener('click', () => (apply((p) => (p.mats.handle = b.dataset.k)), redo())));
+    $('#qCabs', host).addEventListener('click', () => (M.setView('builder'), go(2)));
+    $('#qMore', host).addEventListener('click', () => (M.setView('builder'), go(3)));
+  };
+
   function styledProject(st) {
     const p = JSON.parse(JSON.stringify(S.project));
     p.mats = Object.assign({}, p.mats, JSON.parse(JSON.stringify(st.mats)));
@@ -825,8 +874,9 @@
     if (M.renderMaterials) M.renderMaterials();
     if (M.syncLook) M.syncLook();
     M.toast('Стил „' + st.name + '“');
-    renderColors();
+    if (S.view === 'builder' && B.step === 3) renderColors();
   }
+  M.applyStyle = applyStyle;
 
   let styleShots = { key: '', imgs: [] };
   function renderStyleShots() {
@@ -878,7 +928,7 @@
         <div class="row" style="justify-content:space-between"><b>Фронтове</b><div class="seg" id="bZone">${Object.entries(M.ZONES).map(([k, n]) => `<button data-z="${k}" aria-pressed="${k === z}">${n}</button>`).join('')}</div></div>
         ${z !== 'base' ? `<label class="switch" style="padding-top:0">Като долните<input type="checkbox" id="bSame" ${same ? 'checked' : ''}></label>` : ''}
         <div ${same ? 'hidden' : ''}>
-          <div class="swatches" id="bFronts">${FRONTS.map((f) => sw(f.key, f.color, f.grain, f.name, f.key === curFront)).join('')}</div>
+          <div class="swatches" id="bFronts">${frontsFor(zm).map((f) => sw(f.key, f.color, f.grain, f.name, f.key === curFront)).join('')}</div>
           <div class="small muted" style="margin-top:8px">${esc(M.frontName(mt, z))}</div>
           ${ft.painted ? `<div class="row" style="margin-top:12px"><div class="seg" id="bSurface">${M.CATALOG.surfaces.map((s) => `<button data-k="${s.key}" aria-pressed="${zm.surface === s.key}">${s.name}</button>`).join('')}</div><div class="seg" id="bFinish"><button data-k="mdf-mat" aria-pressed="${zm.frontType === 'mdf-mat'}">Мат</button><button data-k="mdf-gloss" aria-pressed="${zm.frontType === 'mdf-gloss'}">Гланц</button></div></div>` : ''}
         </div>
@@ -943,7 +993,7 @@
       });
     $$('#bFronts .sw').forEach((b) =>
       b.addEventListener('click', () => {
-        const f = FRONTS.find((x) => x.key === b.dataset.k);
+        const f = frontsFor(zm).find((x) => x.key === b.dataset.k);
         const o = Object.assign({}, f.set);
         if (o.frontType === 'mdf-mat' && zm.frontType === 'mdf-gloss') o.frontType = 'mdf-gloss';
         setZone(o);

@@ -128,7 +128,7 @@
 
   M.board = (key) => M.CATALOG.boards.find((b) => b.key === key) || M.CATALOG.boards[0];
   M.frontType = (key) => M.CATALOG.frontTypes.find((f) => f.key === key) || M.CATALOG.frontTypes[0];
-  M.paint = (key) => M.CATALOG.paintColors.find((c) => c.key === key) || M.CATALOG.paintColors[0];
+  M.paint = (key) => (String(key || '')[0] === '#' ? { key, name: 'Цвят от снимката', color: key } : M.CATALOG.paintColors.find((c) => c.key === key) || M.CATALOG.paintColors[0]);
   M.worktop = (key) => M.CATALOG.worktops.find((w) => w.key === key) || M.CATALOG.worktops[0];
   M.handle = (key) => M.CATALOG.handles.find((h) => h.key === key) || M.CATALOG.handles[0];
   M.surface = (key) => M.CATALOG.surfaces.find((s) => s.key === key) || M.CATALOG.surfaces[0];

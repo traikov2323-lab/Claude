@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "@netlify/blobs": "^11.1.0",
-    "@netlify/identity": "2.0.1"
+    "@netlify/identity": "2.0.1",
+    "@anthropic-ai/sdk": "1.6.0"
   },
   "devDependencies": {
     "@netlify/functions": "^6.1.0"

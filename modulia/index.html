@@ -555,6 +555,13 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 .stylec .simg img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .stylec .smeta { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 12px; }
 @media (max-width: 640px) { .styles { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.phslots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.phslot { min-height: 190px; justify-content: center; }
+.phslot img { max-height: 170px; max-width: 100%; border-radius: 10px; transform: none; object-fit: cover; }
+.tcard.zero.photo { background: linear-gradient(160deg, rgba(175,82,222,.14), rgba(0,113,227,.1)); box-shadow: inset 0 0 0 1.5px #af52de; }
+.tcard.zero.photo .tz { background: linear-gradient(180deg, #c77dff, #8e44ec); }
+.facts .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+@media (max-width: 640px) { .phslots { grid-template-columns: 1fr; } }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -612,6 +619,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   <nav class="wrap tabs" id="tabs" role="tablist" aria-label="Раздели">
     <button role="tab" data-view="home" aria-selected="true"><svg class="ic"><use href="#i-home"/></svg>Начало</button>
     <button role="tab" data-view="builder" aria-selected="false"><svg class="ic"><use href="#i-cube"/></svg>Създай кухня</button>
+    <button role="tab" data-view="photo" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
     <button role="tab" data-view="project" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-layers"/></svg>Разширен редактор</button>
     <button role="tab" data-view="ai" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>AI от скица</button>
     <button role="tab" data-view="ar" aria-selected="false"><svg class="ic"><use href="#i-ar"/></svg>AR в стаята</button>
@@ -642,7 +650,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <div class="brands anim-in" aria-label="Материали и обков"><span>EGGER</span><span>Kronospan</span><span>Kastamonu</span><span>Blum</span><span>GTV</span><span>Hettich</span></div>
         <div class="row anim-in">
           <button class="btn primary lg" data-go="builder">Създай своя кухня <svg class="ic"><use href="#i-arrow"/></svg></button>
-          <button class="btn lg" data-go="ai"><svg class="ic"><use href="#i-sparkles"/></svg>От скица с AI</button>
+          <button class="btn lg" data-go="photo"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
         </div>
       </div>
       <div class="tablet anim-in">
@@ -869,6 +877,29 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
     </div>
   </section>
 
+  <!-- КУХНЯ ОТ СНИМКА -->
+  <section class="view" id="view-photo">
+    <div class="split">
+      <div class="card pad stack">
+        <h2>Кухня от снимка</h2>
+        <p class="muted" style="margin:0">Качи снимка на кухня, която харесваш. AI разпознава стила: фронтове, цветове, плот, дръжки и осветление. Добави и снимка на своята кухня или стая, за да видиш новата кухня върху нея и да я коригираш.</p>
+        <div class="phslots">
+          <label class="drop phslot" for="phInsp"><img id="phInspImg" hidden alt="Харесвана кухня"><span id="phInspTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-sparkles"/></svg><br><b>1. Кухня, която харесваш</b><br><span class="small muted">снимка от Instagram, Pinterest, каталог</span></span></label>
+          <input type="file" id="phInsp" accept="image/*" hidden>
+          <label class="drop phslot" for="phRoom"><img id="phRoomImg" hidden alt="Твоята кухня"><span id="phRoomTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-camera"/></svg><br><b>2. Твоята кухня или стая</b><br><span class="small muted">по желание · снимай стената отпред</span></span></label>
+          <input type="file" id="phRoom" accept="image/*" capture="environment" hidden>
+        </div>
+        <div class="field"><label for="phNotes">Бележки (по желание)</label><textarea id="phNotes" rows="2" placeholder="Например: стената е 3,40 м, искам хладилник в колона"></textarea></div>
+        <div class="row"><button class="btn primary lg" id="phRun"><svg class="ic"><use href="#i-sparkles"/></svg>Направи моята кухня</button><button class="btn" id="phDemo">Пример: Модерен орех</button></div>
+        <div class="aistatus muted" id="phStatus"></div>
+      </div>
+      <div class="stack">
+        <div class="card pad" id="phResult"><div class="empty">Тук ще видиш разпознатия стил и цената на новата си кухня.</div></div>
+        <div class="stage3d" id="ph3d" style="height:min(50vh,460px)"><div class="overlay-tl"><span class="glass">3D · новата ти кухня</span></div></div>
+      </div>
+    </div>
+  </section>
+
   <!-- AI -->
   <section class="view" id="view-ai">
     <div class="split">
@@ -912,6 +943,10 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <div class="range"><span>Наклон</span><input type="range" id="arPitch" min="-10" max="25" value="6"><span class="mono" id="arPitchV">6°</span></div>
         <div class="range"><span>Мащаб</span><input type="range" id="arScale" min="70" max="130" value="100"><span class="mono" id="arScaleV">100%</span></div>
         <div class="range"><span>Прозрачност</span><input type="range" id="arOpacity" min="30" max="100" value="94"><span class="mono" id="arOpacityV">94%</span></div>
+        <hr style="border:0;border-top:1px solid var(--line);width:100%">
+        <h3>Бързи корекции</h3>
+        <p class="small muted" style="margin:-6px 0 0">Промените се виждат веднага върху снимката.</p>
+        <div id="arQuick"></div>
         <hr style="border:0;border-top:1px solid var(--line);width:100%">
         <h3>AR на живо през камерата</h3>
         <p class="small muted" style="margin:0">Поставя модела на пода в реален размер (Android с ARCore, iPhone с ARKit), когато приложението е на собствен домейн.</p>
@@ -1094,4 +1129,5 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 <script src="js/app.js"></script>
 <script src="js/features.js"></script>
 <script src="js/builder.js"></script>
+<script src="js/photo.js"></script>
 <script src="js/platform.js"></script>
