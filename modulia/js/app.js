@@ -66,11 +66,13 @@
     catalogPrices: store.get('catalogPrices', null),
     profile: store.get('profile', { name: 'Мебелен цех', city: 'София', phone: '', email: '', lead: '4–6 седмици' }),
     mode: store.get('mode', 'client'),
-    view: 'project',
+    view: 'home',
     selFeature: null,
     selModule: null,
     notes: [],
   });
+
+  S.project.look = Object.assign({}, M.DEFAULT_LOOK, S.project.look || {});
 
   // цени
   M.prices = function () {
@@ -108,8 +110,13 @@
     renderLight();
     clearTimeout(rebuildTimer);
     const do3d = () => {
-      if (view3d) view3d.setProject(P, S.built, { keepCamera: !opts.reframe });
+      P.look = Object.assign({}, M.DEFAULT_LOOK, P.look || {});
+      if (view3d && (S.view === 'project' || !view3d.cabinets || opts.reframe || opts.instant)) view3d.setProject(P, S.built, { keepCamera: !opts.reframe });
+      else if (view3d) S.dirty3d = true;
+      if (S.view === 'home') updateHero();
+      else S.dirtyHero = true;
       S.shot = null;
+      scheduleThumbs();
       M.emit('changed');
     };
     if (opts.instant) do3d();
@@ -129,7 +136,7 @@
     renderElevations();
     renderChecks();
     renderSummary();
-    if (S.mode === 'pro') renderModList();
+    renderModList();
     if (S.view === 'cut') M.renderCut();
     if (S.view === 'request') M.renderRequest();
   }
@@ -172,7 +179,20 @@
         location.hash = v;
       }
     }
-    if (v === 'project' && view3d) view3d.resize();
+    if (v === 'project' && view3d) {
+      view3d.resize();
+      if (S.dirty3d) {
+        S.dirty3d = false;
+        view3d.setProject(S.project, S.built, { keepCamera: true });
+        scheduleThumbs();
+      }
+    }
+    if (v === 'home') {
+      if (S.dirtyHero || !M.heroView || !M.heroView.cabinets) updateHero();
+      heroIntro();
+    }
+    const sec = $('#view-' + v);
+    if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches && v !== 'home') gsap.fromTo(sec, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', clearProps: 'transform,opacity' });
     if (v === 'cut') M.renderCut();
     if (v === 'offer') M.renderOffer();
     if (v === 'request') M.renderRequest();
@@ -183,8 +203,21 @@
   M.setView = setView;
 
   /* ---------- Горна цена и значка ---------- */
+  const counters = {};
+  M.countTo = function (el, value, fmt = M.eur) {
+    if (!el) return;
+    const key = el.id;
+    const from = counters[key] ?? value;
+    counters[key] = value;
+    if (!window.gsap || from === value || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.textContent = fmt(value);
+      return;
+    }
+    const o = { v: from };
+    gsap.to(o, { v: value, duration: 0.7, ease: 'power2.out', onUpdate: () => (el.textContent = fmt(o.v)) });
+  };
   function renderTopPrice() {
-    $('#priceTop').textContent = S.pr ? M.eur(S.pr.gross) : '—';
+    if (S.pr) M.countTo($('#priceTop'), S.pr.gross);
   }
   function renderDimBadge() {
     const r = S.project.room;
@@ -490,17 +523,18 @@
     const P = S.project;
     const g = Object.values(S.groups || {});
     const sheets = g.filter((x) => x.kind === 'board').reduce((a, x) => a + x.nest.sheets.length, 0);
-    const mods = P.modules.filter((m) => m.type !== 'gap').length;
-    const items = [
-      ['Модули', mods],
-      ['Детайли', S.built.parts.length],
-      ['Листа ПДЧ', sheets],
-      ['Кант', M.fmt(S.pr.edges.e08 + S.pr.edges.e2, 1) + ' м'],
-      ['Плот', M.fmt(S.pr.wtLen, 2) + ' м'],
-    ];
-    $('#sumline').innerHTML =
-      items.map(([a, b], i) => `<div class="${i >= 1 && i <= 3 ? 'pro-only' : ''}"><span>${a}</span><b>${b}</b></div>`).join('') +
-      `<div><span>Без ДДС</span><b>${M.eur(S.pr.net)}</b></div><div><span>С ДДС</span><b style="color:var(--accent)">${M.eur(S.pr.gross)}</b></div>`;
+    const util = sheets ? g.filter((x) => x.kind === 'board').reduce((a, x) => a + x.nest.util * x.nest.sheets.length, 0) / sheets : 0;
+    const mods = P.modules.filter((m) => m.type !== 'gap' && m.type !== 'filler').length;
+    const hours = Math.round(mods * 0.6 + S.pr.wtLen * 0.5 + 2);
+    M.countTo($('#resPrice'), S.pr.gross);
+    M.countTo($('#resNet'), S.pr.net);
+    $('#resMods').textContent = mods;
+    $('#resSheets').textContent = sheets + ' бр.';
+    $('#resKant').textContent = M.fmt(S.pr.edges.e08 + S.pr.edges.e2, 0) + ' м';
+    $('#resWt').textContent = M.fmt(S.pr.wtLen, 2) + ' м';
+    $('#resHours').textContent = '~ ' + hours + ' ч.';
+    $('#sumline').textContent = `${S.built.parts.length} детайла · разкрой ${Math.round(util * 100)}% · цените са ориентировъчни, без уреди`;
+    S.hours = hours;
   }
 
   /* ---------- Материали ---------- */
@@ -654,19 +688,24 @@
       })
     );
     const g = groups.find((x) => x.key === S.cutGroup);
-    const modIdx = {};
-    S.project.modules.forEach((m, i) => (modIdx[m.code] = i));
-    const color = (p) => `hsl(${((modIdx[p.module] ?? 7) * 47) % 360} 55% 80%)`;
+    $('#cutOk').innerHTML = `<span class="okc"><svg class="ic"><use href="#i-check"/></svg></span><div><b>Нужни плочи: ${sheets} бр.</b><br><span class="muted">Оптимизация: ${Math.round(util * 100)}%</span></div>`;
+    const decor = g && g.kind === 'board' ? M.board(g.key.split(':')[1]) : { color: '#ecebe6', grain: false };
+    const lum = (hex) => {
+      const n = parseInt(hex.slice(1), 16);
+      return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+    };
+    const ink = lum(decor.color) < 0.45 ? '#ffffff' : '#13224a';
+    const color = () => (decor.grain ? 'url(#grainPat)' : decor.color);
     $('#cutSheets').innerHTML = g
       ? g.nest.sheets
           .map((s, si) => {
-            let h = `<rect x="0" y="0" width="2800" height="2070" style="fill:var(--panel-2);stroke:var(--ink)" stroke-width="4"/>`;
+            let h = `<defs><pattern id="hatchW" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="40" height="40" fill="#c9ced8"/><line x1="0" y1="0" x2="0" y2="40" stroke="#b3b9c6" stroke-width="14"/></pattern><pattern id="grainPat" width="220" height="60" patternUnits="userSpaceOnUse"><rect width="220" height="60" fill="${decor.color}"/><path d="M0 12 Q55 4 110 14 T220 10 M0 34 Q60 26 120 38 T220 32 M0 52 Q70 46 140 55 T220 50" stroke="rgba(70,40,15,.22)" stroke-width="3" fill="none"/></pattern></defs><rect x="0" y="0" width="2800" height="2070" fill="url(#hatchW)" stroke="#13224a" stroke-width="6"/>`;
             for (const pl of s.placed) {
               const it = pl.item;
-              h += `<rect class="pc" x="${pl.x}" y="${pl.y}" width="${pl.l}" height="${pl.w}" fill="${color(it)}"/>`;
-              if (pl.l > 260 && pl.w > 90) h += `<text class="pl" x="${pl.x + 14}" y="${pl.y + 42}">${it.pid} · ${it.module}</text>`;
-              if (pl.l > 420 && pl.w > 150) h += `<text class="pl" x="${pl.x + 14}" y="${pl.y + 84}" opacity=".7">${Math.round(it.L)}×${Math.round(it.W)}</text>`;
-              if (g.grain && pl.l > 200 && pl.w > 140) h += `<path d="M${pl.x + pl.l - 120} ${pl.y + pl.w - 40} h90 m-20 -14 l20 14 l-20 14" style="stroke:var(--ink)" stroke-width="5" fill="none" opacity=".5"/>`;
+              h += `<rect x="${pl.x}" y="${pl.y}" width="${pl.l}" height="${pl.w}" fill="${color(it)}" stroke="#13224a" stroke-width="3"/>`;
+              if (pl.l > 260 && pl.w > 90) h += `<text class="pl" x="${pl.x + 14}" y="${pl.y + 42}" style="fill:${ink}">${it.pid} · ${it.module}</text>`;
+              if (pl.l > 420 && pl.w > 150) h += `<text class="pl" x="${pl.x + 14}" y="${pl.y + 84}" style="fill:${ink}" opacity=".75">${Math.round(it.L)}×${Math.round(it.W)}</text>`;
+              if (g.grain && pl.l > 200 && pl.w > 140) h += `<path d="M${pl.x + pl.l - 120} ${pl.y + pl.w - 40} h90 m-20 -14 l20 14 l-20 14" style="stroke:${ink}" stroke-width="5" fill="none" opacity=".6"/>`;
             }
             return `<div class="card sheet"><div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Лист ${si + 1}</b><span class="pill ${s.util > 0.75 ? 'ok' : s.util < 0.45 ? 'warn' : ''}">${Math.round(s.util * 100)}% · ${s.placed.length} дет.</span></div><svg viewBox="-10 -10 2820 2090">${h}</svg></div>`;
           })
@@ -676,9 +715,9 @@
     const kant = (v) => (v === 2 ? '<span class="kant k2">2</span>' : v === 0.8 ? '<span class="kant k08">0,8</span>' : '<span class="kant">—</span>');
     const rows = S.built.parts.map((p) => {
       const gr = Object.values(S.groups).find((x) => x.items.some((i) => i.pid === p.pid));
-      return `<tr><td class="mono">${p.pid}</td><td>${esc(p.name)}</td><td class="mono">${esc(p.module)}</td><td>${esc(gr ? gr.label : '')}</td><td class="num">${Math.round(p.L)}</td><td class="num">${Math.round(p.W)}</td><td>${gr && gr.grain && p.grain ? '↕ по Д' : '—'}</td><td>${kant(p.edges.L1)} ${kant(p.edges.L2)}</td><td>${kant(p.edges.W1)} ${kant(p.edges.W2)}</td></tr>`;
+      return `<tr><td class="mono">${p.pid}</td><td>${esc(p.name)}</td><td class="mono">${esc(p.module)}</td><td>${esc(gr ? gr.label : '')}</td><td class="num">${Math.round(p.L)}</td><td class="num">${Math.round(p.W)}</td><td><span class="dir">${gr && gr.grain && p.grain ? '↕' : '↔'}</span></td><td>${kant(p.edges.L1)} ${kant(p.edges.L2)}</td><td>${kant(p.edges.W1)} ${kant(p.edges.W2)}</td></tr>`;
     });
-    $('#cutTable').innerHTML = `<thead><tr><th>№</th><th>Детайл</th><th>Модул</th><th>Материал</th><th class="num">Дълж.</th><th class="num">Шир.</th><th>Шарка</th><th>Кант Д1 Д2</th><th>Кант Ш1 Ш2</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+    $('#cutTable').innerHTML = `<thead><tr><th>№</th><th>Детайл</th><th>Модул</th><th>Материал</th><th class="num">Дълж.</th><th class="num">Шир.</th><th>Посока</th><th>Кант Д1 Д2</th><th>Кант Ш1 Ш2</th></tr></thead><tbody>${rows.join('')}</tbody>`;
     const P = M.prices();
     const hwRows = S.pr.lines.filter((l) => l.cat === 'Обков');
     $('#hwTable').innerHTML = `<thead><tr><th>Артикул</th><th class="num">Количество</th><th>Мярка</th><th class="num">Ед. цена</th><th class="num">Сума</th></tr></thead><tbody>${hwRows
@@ -803,6 +842,97 @@
     }
   }
 
+  /* ---------- Панели на редактора ---------- */
+  function bindRail() {
+    $$('#rail button').forEach((b) =>
+      b.addEventListener('click', () => {
+        $$('#rail button').forEach((x) => x.setAttribute('aria-selected', x === b));
+        $$('.panel .pane').forEach((p) => p.classList.toggle('on', p.dataset.pane === b.dataset.pane));
+        const pane = $(`.panel .pane[data-pane="${b.dataset.pane}"]`);
+        if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches) gsap.fromTo(pane.children, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.03, clearProps: 'all' });
+      })
+    );
+  }
+
+  /* ---------- Светлина и сцена ---------- */
+  function bindLook() {
+    const L = () => (S.project.look = Object.assign({}, M.DEFAULT_LOOK, S.project.look || {}));
+    const map = { lkLed: 'led', lkEvening: 'evening', lkDecor: 'decor', lkPendant: 'pendant', lkSpin: 'spin' };
+    const sync = () => {
+      const look = L();
+      for (const [id, k] of Object.entries(map)) $('#' + id).checked = !!look[k];
+      $('#segSplash').innerHTML = M.SPLASH.map((x) => `<button data-k="${x.key}" aria-pressed="${look.splash === x.key}">${x.name}</button>`).join('');
+      $$('#segSplash button').forEach((b) =>
+        b.addEventListener('click', () => {
+          L().splash = b.dataset.k;
+          sync();
+          M.recompute({ instant: true });
+        })
+      );
+    };
+    M.syncLook = sync;
+    for (const [id, k] of Object.entries(map))
+      $('#' + id).addEventListener('change', (e) => {
+        L()[k] = e.target.checked;
+        if (k === 'spin') {
+          store.set('project', S.project);
+          if (view3d) view3d.setSpin(e.target.checked);
+          return;
+        }
+        M.recompute({ instant: true });
+      });
+    sync();
+  }
+
+  /* ---------- Камери ---------- */
+  let thumbTimer = 0;
+  function scheduleThumbs() {
+    clearTimeout(thumbTimer);
+    thumbTimer = setTimeout(() => {
+      if (!view3d || S.view !== 'project' || !view3d.cabinets) return;
+      const shots = view3d.thumbnails(S.project.room);
+      const host = $('#camThumbs');
+      host.innerHTML = '';
+      shots.forEach((s, i) => {
+        const b = document.createElement('button');
+        b.className = 'camthumb';
+        b.setAttribute('aria-pressed', i === (S.camIdx || 0));
+        b.setAttribute('aria-label', 'Камера: ' + s.preset.label);
+        b.innerHTML = `<img src="${s.url}" alt=""><span>${esc(s.preset.label)}</span>`;
+        b.addEventListener('click', () => {
+          S.camIdx = i;
+          $$('.camthumb', host).forEach((x) => x.setAttribute('aria-pressed', x === b));
+          view3d.flyTo(s.preset);
+        });
+        host.appendChild(b);
+      });
+    }, 700);
+  }
+  M.on('view', (v) => v === 'project' && scheduleThumbs());
+
+  /* ---------- Начален екран ---------- */
+  function updateHero() {
+    S.dirtyHero = false;
+    const hv = M.heroView;
+    const P = S.project;
+    if (hv && S.built) hv.setProject(P, S.built, { look: { spin: true, pendant: false } });
+    if (S.pr) {
+      M.countTo($('#heroPrice'), S.pr.gross);
+      const b = M.board(P.mats.carcass);
+      const ft = M.frontType(P.mats.frontType);
+      $('#heroBoard').textContent = b.brand;
+      $('#heroFront').textContent = ft.painted ? (ft.gloss ? 'Гланц' : 'Мат') + ', ' + M.paint(P.mats.frontColor).name : 'ПДЧ';
+      $('#heroHw').textContent = M.CATALOG.hardwareBrands.find((h) => h.key === P.mats.hardware).name;
+    }
+  }
+  let introDone = false;
+  function heroIntro() {
+    if (introDone || !window.gsap || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    introDone = true;
+    gsap.from('#view-home .anim-in', { opacity: 0, y: 24, duration: 0.7, stagger: 0.08, ease: 'power3.out', clearProps: 'all' });
+    gsap.from('#view-home .anim-card', { opacity: 0, y: 30, duration: 0.6, stagger: 0.07, delay: 0.35, ease: 'power3.out', clearProps: 'all' });
+  }
+
   /* ---------- Старт ---------- */
   function init() {
     document.body.dataset.mode = S.mode;
@@ -829,21 +959,23 @@
       S.shot = view3d ? view3d.snapshot() : null;
       M.renderOffer();
     });
+    bindRail();
+    bindLook();
+    try {
+      M.heroView = new M.View3D($('#hero3d'), { lowRes: true, bg: '#eef1f6' });
+    } catch (e) {}
     try {
       view3d = M.view3d = new M.View3D($('#view3d'));
     } catch (e) {
       $('#view3d').insertAdjacentHTML('beforeend', '<div class="empty" style="position:absolute;inset:40px">3D изгледът не може да се зареди в този браузър.</div>');
     }
     $('#btnResetCam').addEventListener('click', () => {
-      if (view3d) {
-        view3d.frame(S.project.room);
-        view3d.render();
-      }
+      if (view3d) view3d.flyTo(view3d.presets(S.project.room)[0]);
     });
     setMode(S.mode);
     M.recompute({ instant: true, reframe: true });
     const h = (location.hash || '').slice(1);
-    if (h) setView(h, false);
+    setView(h || 'home', false);
     window.addEventListener('hashchange', () => {
       const v = location.hash.slice(1);
       if (v && v !== S.view) setView(v, false);

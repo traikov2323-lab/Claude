@@ -35,6 +35,7 @@
     html2pdf: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
     jsqr: 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
     mv: 'https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js',
+    confetti: 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js',
   };
 
   M.saveFile = async function (filename, data, mime) {
@@ -217,6 +218,8 @@
     });
     // проект
     $('#projSave').addEventListener('click', () => M.saveFile(slug() + '.json', JSON.stringify(S.project, null, 1), 'application/json'));
+    $('#projSave2').addEventListener('click', () => M.saveFile(slug() + '.json', JSON.stringify(S.project, null, 1), 'application/json'));
+    $('#arGlb2').addEventListener('click', () => $('#arGlb').click());
     $('#projOpen').addEventListener('change', async (e) => {
       const f = e.target.files[0];
       e.target.value = '';
@@ -239,8 +242,10 @@
   function loadProject(p) {
     S.project = p;
     S.selFeature = S.selModule = null;
+    S.project.look = Object.assign({}, M.DEFAULT_LOOK, S.project.look || {});
     M.syncRoomForm();
     M.renderMaterials();
+    if (M.syncLook) M.syncLook();
     M.recompute({ instant: true, reframe: true });
     M.setView('project');
   }
@@ -455,7 +460,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       const div = document.createElement('div');
       div.style.cssText = 'position:fixed;left:-5000px;top:0;width:640px;height:480px';
       document.body.appendChild(div);
-      offView = new M.View3D(div, { size: [640, 480] });
+      offView = new M.View3D(div, { size: [640, 480], lowRes: true });
     }
     for (const v of variants) {
       const p = variantProject(room, v);
@@ -594,7 +599,11 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
   }
 
   function arHint(t) {
-    $('#arHint').textContent = t;
+    const h = $('#arHint');
+    h.textContent = t;
+    h.hidden = false;
+    const e = $('#arEmpty');
+    if (e) e.hidden = true;
   }
   function arMarks() {
     $$('#arStage .tap').forEach((x) => x.remove());
@@ -731,92 +740,139 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
   });
 
   /* ---------- Сглобяване ---------- */
-  const ASM = { view: null, modId: null, step: 0, part: null, explode: 0.35 };
+  const ASM = { view: null, modId: null, step: 0, part: null, explode: 0, playing: false, timer: 0 };
 
   function asmEnsure() {
     if (ASM.view) return;
-    ASM.view = new M.View3D($('#asm3d'), { bg: '#eef0ec' });
+    ASM.view = new M.View3D($('#asm3d'), { bg: '#eef0f5' });
   }
   function asmModules() {
     return S.project.modules.filter((m) => m.type !== 'gap');
   }
 
   function edgeSvg(p) {
-    const c = (v) => (v === 2 ? 'var(--kant)' : v === 0.8 ? 'color-mix(in srgb, var(--kant) 55%, transparent)' : 'var(--line)');
+    const c = (v) => (v === 2 ? 'var(--kant)' : v === 0.8 ? 'rgba(255,181,71,.6)' : 'var(--line-2)');
     const w = (v) => (v ? (v === 2 ? 6 : 4) : 1.5);
-    return `<svg class="edgesvg" viewBox="0 0 120 70" aria-label="Кант по ръбовете"><rect x="14" y="10" width="92" height="44" style="fill:var(--panel-2)"/>
+    return `<svg class="edgesvg" viewBox="0 0 120 70" aria-label="Кант по ръбовете"><rect x="14" y="10" width="92" height="44" style="fill:rgba(255,255,255,.06)"/>
       <line x1="14" y1="10" x2="106" y2="10" style="stroke:${c(p.edges.L1)}" stroke-width="${w(p.edges.L1)}"/><line x1="14" y1="54" x2="106" y2="54" style="stroke:${c(p.edges.L2)}" stroke-width="${w(p.edges.L2)}"/>
       <line x1="14" y1="10" x2="14" y2="54" style="stroke:${c(p.edges.W1)}" stroke-width="${w(p.edges.W1)}"/><line x1="106" y1="10" x2="106" y2="54" style="stroke:${c(p.edges.W2)}" stroke-width="${w(p.edges.W2)}"/>
       <text x="60" y="68" font-size="9" text-anchor="middle" style="fill:var(--muted)">Д ${Math.round(p.L)} · Ш ${Math.round(p.W)}</text></svg>`;
   }
 
-  function asmRender(keepCamera) {
+  const HW_SHORT = { confirmat: 'Конфирмат 7×50', screw: 'Винт 4×16', hinge: 'Панта', leg: 'Краче', hanger: 'Окачвач', shelfPin: 'Рафтоносач', nail: 'Скоба', drawer: 'Водачи', handle: 'Дръжка', pullout: 'Механизъм' };
+
+  function asmRender(opts = {}) {
     asmEnsure();
     const mods = asmModules();
     if (!mods.length) return;
     if (!ASM.modId || !mods.find((m) => m.id === ASM.modId)) ASM.modId = mods[0].id;
     const mod = mods.find((m) => m.id === ASM.modId);
     const res = S.built.perModule[mod.id];
+    ASM.step = Math.max(0, Math.min(res.steps.length - 1, ASM.step));
     $('#asmModules').innerHTML = mods.map((m) => `<button class="chip" data-m="${m.id}" aria-pressed="${m.id === ASM.modId}" title="${esc(M.typeLabel(m.type))}">${m.code}</button>`).join('');
     $$('#asmModules .chip').forEach((b) =>
       b.addEventListener('click', () => {
+        asmStop();
         ASM.modId = b.dataset.m;
         ASM.step = 0;
         ASM.part = null;
-        asmRender(false);
+        asmRender();
       })
     );
     $('#asmTitle').textContent = `${mod.code} · ${M.typeLabel(mod.type)} · ${mod.w} мм`;
+    $('#asmStepBadge').textContent = `Стъпка ${ASM.step + 1} / ${res.steps.length}`;
     const step = res.steps[ASM.step];
-    let hl = new Set();
-    if (ASM.part !== null) hl = new Set([ASM.part]);
-    else if (step) hl = new Set(step.p);
-    ASM.view.showModule(S.project, mod, res, { explode: ASM.explode, highlight: hl, keepCamera });
+    const highlight = ASM.part !== null ? new Set([ASM.part]) : undefined;
+    ASM.view.showModule(S.project, mod, res, { step: ASM.part !== null ? res.steps.length - 1 : ASM.step, animate: !!opts.animate, explode: ASM.explode, part: ASM.part, highlight, keepCamera: !!opts.keepCamera });
+    // значка с обкова
+    const hw = Object.entries(step.hw || {}).filter(([, q]) => q);
+    const sb = $('#asmScrew');
+    if (hw.length && ASM.part === null) {
+      const [k, q] = hw[0];
+      sb.innerHTML = `<svg class="ic"><use href="#i-screw"/></svg><b>${Math.round(q)}×</b>${esc(HW_SHORT[k] || M.HW_LABEL[k] || k)}`;
+      sb.hidden = false;
+      if (window.gsap && opts.animate) gsap.fromTo(sb, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' });
+    } else sb.hidden = true;
     // стъпки
     $('#asmSteps').innerHTML = res.steps
       .map((s, i) => {
-        const hw = Object.entries(s.hw || {})
+        const h = Object.entries(s.hw || {})
           .filter(([, q]) => q)
           .map(([k, q]) => `${M.HW_LABEL[k] || k} × ${Math.round(q)}`)
           .join(' · ');
-        return `<button class="step" data-s="${i}" aria-pressed="${ASM.part === null && i === ASM.step}"><span class="k">${i + 1}</span><span>${esc(s.t)}${hw ? `<small>${esc(hw)}</small>` : ''}</span></button>`;
+        return `<button class="step${i < ASM.step ? ' done' : ''}" data-s="${i}" aria-pressed="${ASM.part === null && i === ASM.step}"><span class="k">${i + 1}</span><span>${esc(s.t)}${h ? `<small>${esc(h)}</small>` : ''}</span></button>`;
       })
       .join('');
     $$('#asmSteps .step').forEach((b) =>
       b.addEventListener('click', () => {
+        asmStop();
         ASM.step = +b.dataset.s;
         ASM.part = null;
-        asmRender(true);
+        asmRender({ animate: true, keepCamera: true });
       })
     );
-    // детайл
+    const cur = $('#asmSteps .step[aria-pressed="true"]');
+    if (cur) cur.scrollIntoView({ block: 'nearest' });
+    // избран детайл
     const pp = ASM.part !== null ? res.parts[ASM.part] : null;
     if (pp) {
-      const gp = S.built.parts.find((x) => x.moduleId === mod.id && x.name === pp.name && x.box === pp.box) || pp;
       const used = res.steps.map((s, i) => (s.p.includes(ASM.part) ? i + 1 : 0)).filter(Boolean);
-      $('#asmPart').innerHTML = `<div class="partcard"><div class="qr">${M.qrSvg(qrText(gp.pid))}</div><div class="stack" style="gap:4px"><b class="mono" style="font-size:16px">${gp.pid} · ${esc(mod.code)}</b><span>${esc(pp.name)}</span><span class="small muted">${pp.mat === 'hdf' ? 'HDF 3 мм' : pp.mat === 'front' ? 'Фронт' : 'Корпус ПДЧ 18 мм'} · стъпки ${used.join(', ') || '—'}</span>${edgeSvg(pp)}</div></div>`;
+      $('#asmPart').innerHTML = `<div class="partcard"><div class="qr">${M.qrSvg(qrText(pp.pid))}</div><div class="stack" style="gap:4px"><b class="mono" style="font-size:16px">${pp.pid} · ${esc(mod.code)}</b><span>${esc(pp.name)}</span><span class="small muted">${pp.mat === 'hdf' ? 'HDF 3 мм' : pp.mat === 'front' ? 'Фронт' : 'Корпус ПДЧ 18 мм'} · стъпки ${used.join(', ') || '—'}</span>${edgeSvg(pp)}</div></div><button class="btn sm" id="asmBack" style="margin-top:10px">Обратно към стъпките</button>`;
+      $('#asmBack').onclick = () => {
+        ASM.part = null;
+        asmRender({ keepCamera: true });
+      };
     } else {
-      $('#asmPart').innerHTML = `<div class="stack" style="gap:6px"><b>Стъпка ${ASM.step + 1} от ${res.steps.length}</b><span class="small muted">Детайлите за тази стъпка са оцветени в синьо. Натисни детайл отдолу или сканирай етикета му.</span><div class="row"><button class="btn sm" id="stPrev" ${ASM.step === 0 ? 'disabled' : ''}>Назад</button><button class="btn sm primary" id="stNext" ${ASM.step >= res.steps.length - 1 ? 'disabled' : ''}>Следваща стъпка</button></div></div>`;
-      $('#stPrev').onclick = () => {
-        ASM.step--;
-        asmRender(true);
-      };
-      $('#stNext').onclick = () => {
-        ASM.step++;
-        asmRender(true);
-      };
+      $('#asmPart').innerHTML = `<div class="stack" style="gap:6px"><b style="font-family:var(--f-display);font-size:17px">${ASM.step === 0 ? 'Всички детайли' : 'Стъпка ' + (ASM.step + 1)}</b><span class="small muted">${ASM.step === 0 ? 'Подреди детайлите по етикетите. Натисни ▶ за анимацията стъпка по стъпка.' : 'Новите детайли са в синьо. Сканирай етикет, за да видиш къде отива.'}</span></div>`;
     }
-    // детайли
     const gparts = S.built.parts.filter((x) => x.moduleId === mod.id);
     $('#asmParts').innerHTML = gparts
       .map((p, i) => `<button class="pitem" data-i="${i}" aria-pressed="${ASM.part === i}"><span class="qr">${M.qrSvg(qrText(p.pid))}</span><span style="min-width:0"><b>${p.pid}</b><span>${esc(p.name)}</span><span class="mono">${Math.round(p.L)}×${Math.round(p.W)}</span></span></button>`)
       .join('');
     $$('#asmParts .pitem').forEach((b) =>
       b.addEventListener('click', () => {
+        asmStop();
         ASM.part = ASM.part === +b.dataset.i ? null : +b.dataset.i;
-        asmRender(true);
+        asmRender({ keepCamera: true });
       })
     );
+    $('#asmPlay').innerHTML = `<svg class="ic"><use href="#i-${ASM.playing ? 'pause' : 'play'}"/></svg>`;
+    $('#asmPlay').setAttribute('aria-label', ASM.playing ? 'Пауза' : 'Пусни анимацията');
+  }
+
+  function asmGo(d) {
+    const mod = asmModules().find((m) => m.id === ASM.modId);
+    if (!mod) return false;
+    const n = S.built.perModule[mod.id].steps.length;
+    const next = ASM.step + d;
+    if (next < 0 || next >= n) return false;
+    ASM.step = next;
+    ASM.part = null;
+    asmRender({ animate: d > 0, keepCamera: true });
+    return true;
+  }
+  function asmStop() {
+    ASM.playing = false;
+    clearInterval(ASM.timer);
+  }
+  function asmPlay() {
+    if (ASM.playing) {
+      asmStop();
+      asmRender({ keepCamera: true });
+      return;
+    }
+    ASM.playing = true;
+    ASM.part = null;
+    const mod = asmModules().find((m) => m.id === ASM.modId);
+    if (mod && ASM.step >= S.built.perModule[mod.id].steps.length - 1) ASM.step = 0;
+    asmRender({ keepCamera: true });
+    ASM.timer = setInterval(() => {
+      if (!asmGo(1)) {
+        asmStop();
+        asmRender({ keepCamera: true });
+      }
+    }, 2400);
+    setTimeout(() => ASM.playing && asmGo(1), 500);
   }
 
   function asmFindPid(pid) {
@@ -834,24 +890,29 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       M.toast(`${pid} е ${p.name.toLowerCase()} за ${p.module}. Монтира се след шкафовете.`);
       return;
     }
+    asmStop();
     ASM.modId = p.moduleId;
     const list = S.built.parts.filter((x) => x.moduleId === p.moduleId);
     ASM.part = list.indexOf(p);
-    asmRender(false);
+    asmRender();
     M.toast(`${pid}: ${p.name} — ${p.module}`);
   }
 
   M.on('ready', () => {
     M.on('view', (v) => {
-      if (v === 'assembly') asmRender(false);
+      if (v === 'assembly') asmRender();
+      else asmStop();
     });
     M.on('changed', () => {
-      if (S.view === 'assembly') asmRender(true);
+      if (S.view === 'assembly') asmRender({ keepCamera: true });
     });
+    $('#asmPrev').addEventListener('click', () => (asmStop(), asmGo(-1)));
+    $('#asmNext').addEventListener('click', () => (asmStop(), asmGo(1)));
+    $('#asmPlay').addEventListener('click', asmPlay);
     $('#asmExplode').addEventListener('input', (e) => {
       ASM.explode = +e.target.value / 100;
       $('#asmExplodeV').textContent = e.target.value + '%';
-      asmRender(true);
+      asmRender({ keepCamera: true });
     });
     $('#partSearch').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') asmFindPid(e.target.value);
@@ -942,6 +1003,11 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
         M.store.set('localRequests', list.slice(0, 30));
       }
       btn.disabled = false;
+      M.loadScript(LIB.confetti)
+        .then(() => {
+          if (window.confetti && !matchMedia('(prefers-reduced-motion: reduce)').matches) window.confetti({ particleCount: 140, spread: 75, origin: { y: 0.7 }, colors: ['#2f6bff', '#5d8dff', '#ffb547', '#ffffff'] });
+        })
+        .catch(() => {});
       st.innerHTML = sent ? `<b style="color:var(--ok)">Запитването е изпратено.</b> Цехове в ${esc(payload.city)} ще се свържат с теб на ${esc(payload.phone)}.` : `<b>Запитването е записано в този браузър.</b> В публикуваната версия на Модулия то отива директно при цеховете. Можеш да го видиш в режим „Цех“ → Заявки.`;
     });
   });
