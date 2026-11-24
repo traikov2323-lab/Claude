@@ -30,6 +30,27 @@
 - Разкрой с текстура на декора, „Нужни плочи · Оптимизация“
 - Конфети при изпратена заявка
 
+## Сайт и приложение
+
+**Адрес:** https://modulia-bg.netlify.app (Netlify проект `modulia-bg`)
+
+- **Приложение (PWA):** инсталира се на iPhone и iPad (Safari → Сподели → „Добави към началния екран“), на Android (Chrome → „Инсталиране на приложението“) и на Windows и Mac (Chrome или Edge → иконата в адресната лента; Safari → Файл → „Добави в Dock“). Работи на цял екран и без интернет.
+- **Вход:** регистрация с имейл и парола и вход с Google чрез Netlify Identity. Профилът е „Клиент“ или „Мебелен цех“.
+- **Проекти в акаунта:** запазват се автоматично (`/api/projects`, Netlify Blobs).
+- **Заявки:** клиентите изпращат към `/api/requests`, цеховете ги виждат в раздел „Заявки“.
+
+### Включване на входа (еднократно, от таблото на Netlify)
+
+1. https://app.netlify.com/projects/modulia-bg/identity → **Enable Identity**
+2. Registration → External providers → **Add provider → Google**
+3. По желание: Emails → **Autoconfirm**, за да не се иска потвърждение по имейл
+
+Профилът „Мебелен цех“ се избира от самия потребител (`user_metadata.account_type`). Преди истинско пускане на пазара цеховете трябва да се одобряват ръчно, например с роля, зададена от администратор.
+
+### Публикуване
+
+`node build.mjs` сглобява `dist/`. Netlify пуска същата команда при всяко публикуване (`netlify.toml`).
+
 ## Структура
 
 ```
@@ -39,6 +60,10 @@ js/engine.js      подреждане, детайли, кант, разкрой
 js/view3d.js      3D сцена (three.js)
 js/app.js         състояние и раздели
 js/features.js    AI, преглед в стаята, QR сглобяване, PDF/CSV/GLB, запитвания
+js/platform.js    инсталиране (PWA), вход, проекти в акаунта, заявки към сървъра
+netlify/functions сървър: /api/projects, /api/requests
+pwa/              manifest, service worker, иконки
+build.mjs         сглобява dist/ за Netlify
 ```
 
 Библиотеки от CDN: three.js 0.147 (+ OrbitControls, GLTFExporter, RoomEnvironment), GSAP 3.12, qrcode-generator; при нужда се зареждат html2pdf.js, jsQR, model-viewer и canvas-confetti.

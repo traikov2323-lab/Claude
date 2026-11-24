@@ -1,0 +1,25 @@
+{
+  "name": "Модулия — кухни по мярка",
+  "short_name": "Модулия",
+  "description": "3D конфигуратор на кухни: автоматично подреждане, разкрой, оферта, AI от скица, AR и сглобяване с QR етикети.",
+  "lang": "bg",
+  "id": "/",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#f5f5f7",
+  "theme_color": "#ffffff",
+  "categories": ["productivity", "lifestyle", "business"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "3D редактор", "url": "/#project", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "AI от скица", "url": "/#ai", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Сглобяване", "url": "/#assembly", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

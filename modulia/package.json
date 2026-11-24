@@ -1,0 +1,17 @@
+{
+  "name": "modulia",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Модулия — онлайн конфигуратор на кухни",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.0",
+    "@netlify/identity": "2.0.1"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^6.1.0"
+  }
+}

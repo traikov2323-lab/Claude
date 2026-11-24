@@ -987,7 +987,13 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       st.innerHTML = '<span class="spinner"></span> Изпращам…';
       const payload = requestPayload();
       let sent = false;
-      try {
+      if (M.platform && M.platform.api) {
+        try {
+          await M.platform.sendRequest(payload);
+          sent = true;
+        } catch (err) {}
+      }
+      if (!sent) try {
         const [db, user] = await Promise.all([M.cap('db'), M.cap('user')]);
         const uid = user ? await user.id() : null;
         if (db && uid) {
@@ -1044,8 +1050,14 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       if (done)
         done.addEventListener('click', async () => {
           try {
-            const db = await M.cap('db');
-            await db.doc('requests/' + r._id).update({ status: 'обработена' });
+            if (remote === 'api') {
+              await M.platform.setRequestStatus(r.id, 'обработена');
+              el.querySelector('.pill').textContent = 'обработена';
+              el.querySelector('.pill').className = 'pill ok';
+            } else {
+              const db = await M.cap('db');
+              await db.doc('requests/' + r._id).update({ status: 'обработена' });
+            }
           } catch (e) {
             M.toast('Статусът не се промени');
           }
@@ -1059,6 +1071,26 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       if (!list.length) host.innerHTML = '<div class="empty">Още няма запитвания. Превключи на „Клиент“, направи проект и натисни „Изпрати запитване“.</div>';
       list.forEach((r) => host.appendChild(card(r, false)));
     };
+    const PL = M.platform;
+    if (PL && PL.api) {
+      if (!PL.user || !PL.isShop()) {
+        note.textContent = 'Заявките на клиентите виждат само мебелните цехове.';
+        host.innerHTML = '<div class="empty">Влез с профил на мебелен цех, за да виждаш заявките.<br><br><button class="btn primary" id="inboxLogin">Вход за цехове</button></div>';
+        $('#inboxLogin').onclick = () => PL.openAuth(PL.user ? 'login' : 'signup');
+        return;
+      }
+      note.innerHTML = '<span class="spinner"></span> Зареждам заявките…';
+      try {
+        const docs = await PL.listRequests();
+        note.textContent = `Заявки от клиенти: ${docs.length}.`;
+        host.innerHTML = '';
+        if (!docs.length) host.innerHTML = '<div class="empty">Още няма заявки от клиенти.</div>';
+        docs.forEach((r) => host.appendChild(card(r, 'api')));
+      } catch (e) {
+        note.textContent = e.status === 403 ? 'Профилът ти не е на мебелен цех.' : 'Заявките не се заредиха.';
+      }
+      return;
+    }
     const [db, user] = await Promise.all([M.cap('db'), M.cap('user')]);
     const canRead = user ? await user.canEdit().catch(() => false) : false;
     if (!db || !canRead) return showLocal('Показани са запитванията, изпратени от този браузър. Когато Модулия е публикувана, тук идват запитванията на всички клиенти.');
@@ -1082,4 +1114,5 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
     );
   }
   M.on('view', (v) => v === 'inbox' && renderInbox());
+  M.on('auth', () => S.view === 'inbox' && renderInbox());
 })();
