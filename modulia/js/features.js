@@ -110,11 +110,20 @@
     const a = t.indexOf('{'),
       b = t.lastIndexOf('}');
     if (a >= 0 && b > a) {
+      const body = t.slice(a, b + 1);
       try {
-        return JSON.parse(t.slice(a, b + 1));
+        return JSON.parse(body);
+      } catch (e) {}
+      // поправки: коментари, излишни запетаи, кавички тип „ “
+      const fixed = body
+        .replace(/\/\/[^\n"]*$/gm, '')
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/[\u201c\u201d\u201e]/g, '"');
+      try {
+        return JSON.parse(fixed);
       } catch (e) {}
     }
-    throw { code: 'invalid_json' };
+    throw { code: 'invalid_json', text: t };
   };
   M.aiJSON = async function (task, prompt, blob, signal) {
     const mode = await M.aiMode();
@@ -123,10 +132,28 @@
       return sample.json(prompt, { images: [blob], signal, modelTier: 'default' });
     }
     if (mode === 'server') {
-      const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ task, prompt, image: await blobToB64(blob), mediaType: blob.type || 'image/jpeg' }), signal });
+      const body = JSON.stringify({ task, prompt, image: await blobToB64(blob), mediaType: blob.type || 'image/jpeg' });
+      let r = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal });
+          if (r.status < 500) break;
+        } catch (e) {
+          if (signal && signal.aborted) throw { code: 'cancelled' };
+          r = null;
+        }
+        if (attempt < 4) await new Promise((ok) => setTimeout(ok, 3000 * (attempt + 1)));
+      }
+      if (!r) throw { code: 'server' };
       if (!r.ok) throw { code: r.status === 429 ? 'rate_limited' : r.status === 503 ? 'unavailable' : 'server' };
       const { text } = await r.json();
-      return parseJSON(text);
+      try {
+        return parseJSON(text);
+      } catch (e) {
+        // още един опит с изрично напомняне за JSON
+        if (prompt.includes('[retry]')) throw e;
+        return M.aiJSON(task, prompt + '\n\n[retry] Reply with ONE valid JSON object only. No comments, no trailing commas, no text before or after.', blob, signal);
+      }
     }
     throw { code: 'unavailable' };
   };
@@ -652,6 +679,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
     const tx = t0.x - c0.x * s + AR.off.x,
       ty = t0.y - c0.y * s + AR.off.y;
     AR.ov.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+    AR.tf = { tx, ty, s };
     AR.ov.style.opacity = +$('#arOpacity').value / 100;
     AR.ov.hidden = false;
   }
@@ -796,6 +824,26 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       }
     });
   });
+
+  // снимката и снимката с 3D макета, за фотореалистичния рендер
+  M.arComposite = async function () {
+    if (!AR.img || !AR.ready || !AR.view || !AR.tf) return null;
+    const img = AR.img;
+    const k0 = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const W = Math.round(img.naturalWidth * k0),
+      H = Math.round(img.naturalHeight * k0);
+    const c = document.createElement('canvas');
+    c.width = W;
+    c.height = H;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0, W, H);
+    const photo = c.toDataURL('image/jpeg', 0.88);
+    AR.view.renderNow();
+    const k = W / $('#arStage').clientWidth;
+    g.globalAlpha = Math.max(0.85, +$('#arOpacity').value / 100);
+    g.drawImage(AR.view.renderer.domElement, AR.tf.tx * k, AR.tf.ty * k, OW * AR.tf.s * k, OH * AR.tf.s * k);
+    return { photo, composite: c.toDataURL('image/jpeg', 0.88) };
+  };
 
   M.arLoad = function (blob, corners) {
     const st = $('#arStage');

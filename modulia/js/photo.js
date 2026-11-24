@@ -5,6 +5,7 @@
   const { $, $$, esc } = M;
   const S = M.S;
   const PH = { insp: null, room: null, ctl: null, view: null, last: null };
+  M.photoView = () => PH.view;
 
   const WOOD = { walnut: 'egger-h3734', dark_wood: 'egger-h3734', oak: 'egger-h3303', natural_oak: 'egger-h1145', light_oak: 'krono-sonoma', grey: 'egger-u702', black: 'egger-u999' };
   const CARC = { white: 'egger-w1000', grey: 'egger-u708', anthracite: 'kasta-anthracite' };
@@ -118,7 +119,8 @@ Reply with ONLY this JSON:
       ${rm && rm.notes ? `<p class="small muted" style="margin:0">${esc(rm.notes)}</p>` : ''}
       <div class="row">
         ${PH.room && rm ? `<button class="btn primary" id="phAr"><svg class="ic"><use href="#i-ar"/></svg>Виж в моята кухня</button>` : ''}
-        <button class="btn ${PH.room && rm ? '' : 'primary'}" id="phColors">Промени цветовете</button>
+        <button class="btn ${PH.room && rm ? '' : 'primary'}" data-real="${PH.room && rm ? 'room' : 'photo'}"><svg class="ic"><use href="#i-sparkles"/></svg>${PH.room && rm ? 'Реалистично в моята снимка' : 'Фотореалистичен рендер'}</button>
+        <button class="btn" id="phColors">Промени цветовете</button>
         <button class="btn" id="phCabs">Промени шкафовете</button>
         <button class="btn" data-go="request">Изпрати заявка</button>
       </div></div>`;

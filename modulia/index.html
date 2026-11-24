@@ -562,6 +562,23 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 .tcard.zero.photo .tz { background: linear-gradient(180deg, #c77dff, #8e44ec); }
 .facts .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
 @media (max-width: 640px) { .phslots { grid-template-columns: 1fr; } }
+.rcard { width: min(1120px, 100%) !important; }
+.rwait { position: relative; border-radius: 14px; overflow: hidden; background: #111; }
+.rwait img { display: block; width: 100%; filter: blur(2px) saturate(.8) brightness(.85); }
+.rwait .rscan { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%); background-size: 250% 100%; animation: sh 1.8s linear infinite; mix-blend-mode: overlay; }
+.rwait .rmsg { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(29,29,31,.82); backdrop-filter: blur(12px); color: #fff; border-radius: 980px; padding: 9px 16px; font-weight: 500; display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+.rwait .rmsg .mono { opacity: .7; }
+.compare { position: relative; border-radius: 14px; overflow: hidden; cursor: ew-resize; user-select: none; touch-action: none; background: #111; }
+.compare img { display: block; width: 100%; pointer-events: none; }
+.compare .after { position: absolute; inset: 0; }
+.compare .after img { width: 100%; height: 100%; object-fit: cover; }
+.compare .handle { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 12px rgba(0,0,0,.4); pointer-events: none; }
+.compare .handle span { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #1d1d1f; display: grid; place-items: center; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+.compare .tag { position: absolute; top: 12px; background: rgba(29,29,31,.7); color: #fff; font-size: 12px; font-weight: 600; border-radius: 980px; padding: 4px 10px; pointer-events: none; }
+.compare .tag.l { left: 12px; }
+.compare .tag.r { right: 12px; }
+.btn.magic { background: linear-gradient(90deg, #0071e3, #8e44ec); color: #fff; }
+.btn.magic:hover { filter: brightness(1.08); }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -742,7 +759,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       </div>
       <aside class="bside">
         <div class="stage3d b3d" id="b3d"><div class="overlay-tl"><span class="glass">3D · завърти с мишка или пръст</span></div></div>
-        <div class="card pad bprice"><span class="muted small">Ориентировъчна цена с ДДС</span><b id="bPrice">—</b><span class="small muted" id="bSum"></span><button class="btn primary" data-go="request">Изпрати заявка към цех</button></div>
+        <div class="card pad bprice"><span class="muted small">Ориентировъчна цена с ДДС</span><b id="bPrice">—</b><span class="small muted" id="bSum"></span><button class="btn magic" data-real="builder"><svg class="ic"><use href="#i-sparkles"/></svg>Фотореалистичен рендер</button><button class="btn primary" data-go="request" style="margin-top:6px">Изпрати заявка към цех</button></div>
       </aside>
     </div>
   </section>
@@ -851,7 +868,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       <div class="stage">
         <div class="stage3d" id="view3d">
           <div class="overlay-tl"><span class="glass" id="dimBadge">—</span></div>
-          <div class="overlay-br"><button class="glassbtn" id="btnResetCam"><svg class="ic"><use href="#i-rotate"/></svg>Изглед</button></div>
+          <div class="overlay-br"><button class="glassbtn" data-real="project"><svg class="ic"><use href="#i-sparkles"/></svg>Реалистично</button><button class="glassbtn" id="btnResetCam"><svg class="ic"><use href="#i-rotate"/></svg>Изглед</button></div>
           <div class="overlay-bl" id="camThumbs"></div>
         </div>
         <div class="checks" id="checks"></div>
@@ -944,6 +961,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <div class="range"><span>Мащаб</span><input type="range" id="arScale" min="70" max="130" value="100"><span class="mono" id="arScaleV">100%</span></div>
         <div class="range"><span>Прозрачност</span><input type="range" id="arOpacity" min="30" max="100" value="94"><span class="mono" id="arOpacityV">94%</span></div>
         <hr style="border:0;border-top:1px solid var(--line);width:100%">
+        <button class="btn magic lg" data-real="room"><svg class="ic"><use href="#i-sparkles"/></svg>Реалистично в моята снимка</button>
         <h3>Бързи корекции</h3>
         <p class="small muted" style="margin:-6px 0 0">Промените се виждат веднага върху снимката.</p>
         <div id="arQuick"></div>
@@ -1130,4 +1148,5 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 <script src="js/features.js"></script>
 <script src="js/builder.js"></script>
 <script src="js/photo.js"></script>
+<script src="js/render.js"></script>
 <script src="js/platform.js"></script>

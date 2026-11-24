@@ -8,8 +8,6 @@ const MEDIA = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export default async (req: Request, context: Context) => {
   if (req.method !== "POST") return Response.json({ error: "Само POST" }, { status: 405 });
-  if (!Netlify.env.get("ANTHROPIC_BASE_URL") && !Netlify.env.get("ANTHROPIC_API_KEY"))
-    return Response.json({ error: "AI не е активиран за сайта" }, { status: 503 });
 
   let body: { task?: string; prompt?: string; image?: string; mediaType?: string };
   try {
@@ -24,7 +22,10 @@ export default async (req: Request, context: Context) => {
   if (!image || image.length > 4_500_000 || !/^[A-Za-z0-9+/=]+$/.test(image)) return Response.json({ error: "Липсва снимка или е твърде голяма" }, { status: 400 });
 
   try {
-    const client = new Anthropic();
+    const apiKey = process.env.ANTHROPIC_API_KEY || Netlify.env.get("ANTHROPIC_API_KEY");
+    const baseURL = process.env.ANTHROPIC_BASE_URL || Netlify.env.get("ANTHROPIC_BASE_URL");
+    if (!apiKey) return Response.json({ error: "AI се активира, опитай след малко" }, { status: 503 });
+    const client = new Anthropic({ apiKey, baseURL: baseURL || undefined });
     const msg = await client.messages.create({
       model: "claude-sonnet-5-5",
       max_tokens: 2000,
@@ -44,6 +45,7 @@ export default async (req: Request, context: Context) => {
     return Response.json({ text });
   } catch (e) {
     const status = (e as { status?: number }).status;
+    console.error("ai error", status, String((e as Error).message || e).slice(0, 300));
     return Response.json({ error: status === 429 ? "Твърде много заявки" : "AI не отговори" }, { status: status === 429 ? 429 : 502 });
   }
 };

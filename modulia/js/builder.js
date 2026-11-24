@@ -100,6 +100,7 @@
   }
   // от автоматично към ръчно подреждане: махаме празните места над колоните (пакетирането ги заобикаля само)
   M.toManual = (p) => toManual(p);
+  M.builderView = () => B.view;
   function toManual(p) {
     const talls = p.modules.filter((m) => M.isTall(m.type));
     p.modules = p.modules.filter((m) => !(m.type === 'gap' && m.row === 'wall' && talls.some((t) => t.wall === m.wall && Math.abs(t.x - m.x) < 2)));
@@ -1040,6 +1041,7 @@
       <div class="row">
         <button class="btn primary lg" data-go="request">Изпрати заявка към цех <svg class="ic"><use href="#i-arrow"/></svg></button>
         <button class="btn lg" id="bSave">${user ? 'Запази в акаунта' : 'Влез и запази'}</button>
+        <button class="btn lg" data-real="builder"><svg class="ic"><use href="#i-sparkles"/></svg>Фотореалистично</button>
         <button class="btn lg" id="bShot"><svg class="ic"><use href="#i-camera"/></svg>Снимка</button>
       </div>
       <div class="row small"><button class="btn link sm" data-go="ar">Виж я в стаята си (AR)</button><button class="btn link sm" data-go="project">Разширен редактор за цехове</button></div></div>`;
