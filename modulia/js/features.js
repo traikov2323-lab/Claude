@@ -239,7 +239,7 @@
     });
   });
 
-  function loadProject(p) {
+  function loadProject(p, opts = {}) {
     S.project = p;
     S.selFeature = S.selModule = null;
     S.project.look = Object.assign({}, M.DEFAULT_LOOK, S.project.look || {});
@@ -247,7 +247,7 @@
     M.renderMaterials();
     if (M.syncLook) M.syncLook();
     M.recompute({ instant: true, reframe: true });
-    M.setView('project');
+    if (!opts.stay) M.setView(S.mode === 'pro' ? 'project' : 'builder');
   }
   M.loadProject = loadProject;
 

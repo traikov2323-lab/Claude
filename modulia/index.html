@@ -436,6 +436,118 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   .arstage { border-radius: 30px; }
   .top-row .btn.dl-btn span { display: none; }
 }
+/* Конструктор „Създай кухня“ */
+.bsteps { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.bsteps button { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; color: var(--muted); font-weight: 500; padding: 6px 12px 6px 6px; border-radius: 980px; transition: background .2s, color .2s; }
+.bsteps button span { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--fill-2); font-size: 13px; font-weight: 600; }
+.bsteps button[aria-current="step"] { color: var(--ink); background: var(--panel); box-shadow: var(--shadow); font-weight: 600; }
+.bsteps button[aria-current="step"] span { background: var(--accent); color: #fff; }
+.bsteps button.done span { background: var(--ok); color: #fff; }
+.builder { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 20px; align-items: start; }
+.bmain { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.bnav { border-top: 1px solid var(--line); padding-top: 16px; }
+.bside { position: sticky; top: 116px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.b3d { height: min(48vh, 460px); min-height: 280px; }
+.bprice { display: flex; flex-direction: column; gap: 4px; }
+.bprice b { font-family: var(--f-display); font-size: 34px; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.bprice .btn { margin-top: 10px; }
+.tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.tcard { border: 0; padding: 0; overflow: hidden; text-align: left; display: flex; flex-direction: column; position: relative; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; }
+.tcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.tcard .timg { display: block; aspect-ratio: 48 / 34; background: var(--fill); }
+.tcard .timg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tcard .tmeta { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px 14px; }
+.tcard .tprice { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,.86); backdrop-filter: blur(12px); color: #1d1d1f; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 980px; }
+.tcard.zero { align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 22px; background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); min-height: 220px; }
+.tcard.zero .tz { width: 60px; height: 60px; border-radius: 18px; background: var(--accent); color: #fff; display: grid; place-items: center; }
+.shapepick { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.shapepick button { border: 0; background: var(--fill); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: .2s; }
+.shapepick button svg { width: 120px; height: 70px; fill: var(--line-2); stroke: var(--muted); stroke-width: 2; }
+.shapepick button[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+.shapepick button[aria-pressed="true"] svg { fill: var(--accent); stroke: var(--accent); fill-opacity: .25; }
+.steppers { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.stepper { display: flex; flex-direction: column; gap: 6px; }
+.stp { display: flex; align-items: center; background: var(--fill); border-radius: 14px; padding: 5px; }
+.stp button { width: 44px; height: 44px; border-radius: 11px; border: 0; background: var(--panel); font-size: 22px; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.stp button:active { transform: scale(.94); }
+.stp input { flex: 1; min-width: 0; text-align: center; border: 0; background: transparent; font-family: var(--f-display); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stp input:focus { outline: none; }
+.stp .u { color: var(--muted); margin-right: 8px; }
+.boardwrap { overflow-x: auto; padding: 18px 10px 8px; background: linear-gradient(180deg, var(--fill), transparent); border-radius: 18px; display: flex; justify-content: center; }
+.board { position: relative; flex: none; background: #fbfbfd; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); color: #1d1d1f; touch-action: none; }
+.board .zone { position: absolute; border-radius: 8px; transition: background .2s, box-shadow .2s; }
+.board .zone.on { background: rgba(0,113,227,.07); box-shadow: inset 0 0 0 2px rgba(0,113,227,.45); }
+.board .bwin { position: absolute; background: linear-gradient(160deg, #e1effc, #cfe3f7); box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 4px #9cc3e8; border-radius: 3px; }
+.board .bcorner { position: absolute; background: repeating-linear-gradient(45deg, #ececf0 0 6px, #f6f6f8 6px 12px); border-radius: 3px; display: grid; place-items: center; }
+.board .bcorner span { font-size: 11px; color: #8e8e93; }
+.board .bwt { position: absolute; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.board .bfloor { position: absolute; left: -10px; right: -10px; bottom: -3px; height: 3px; background: #1d1d1f; border-radius: 2px; }
+.board .bcab { position: absolute; cursor: grab; touch-action: none; transition: transform .15s, filter .2s; }
+.board .bcab svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.board .bcab:hover { filter: brightness(1.04) drop-shadow(0 4px 8px rgba(0,0,0,.15)); z-index: 2; }
+.board .bcab.sel { z-index: 3; filter: drop-shadow(0 0 0 #0071e3); }
+.board .bcab.sel::after { content: ""; position: absolute; inset: -3px; border-radius: 6px; box-shadow: 0 0 0 3px #0071e3; pointer-events: none; }
+.board .bcab.fixed { cursor: default; opacity: .9; }
+.board .bcab.gapc { color: #1d1d1f; }
+.board .bw { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); font-size: 10.5px; font-weight: 600; background: rgba(255,255,255,.88); color: #1d1d1f; border-radius: 980px; padding: 0 6px; pointer-events: none; white-space: nowrap; }
+.board .marker { position: absolute; width: 4px; background: #0071e3; border-radius: 2px; box-shadow: 0 0 10px rgba(0,113,227,.6); z-index: 5; pointer-events: none; }
+.capbar { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cap { font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+.cap b.bad { color: var(--bad); }
+.cap b.okc { color: #1f8f3f; }
+.capt { height: 6px; border-radius: 3px; background: var(--fill-2); overflow: hidden; }
+.capt i { display: block; height: 100%; border-radius: 3px; transition: width .35s cubic-bezier(.2,.8,.2,1); }
+.selbar { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: var(--accent-soft); }
+.wchips { display: flex; gap: 4px; flex-wrap: wrap; }
+.wchips button { min-width: 42px; border: 0; background: var(--panel); border-radius: 9px; padding: 6px 8px; font-weight: 600; font-variant-numeric: tabular-nums; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.wchips button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.palette { display: flex; flex-direction: column; gap: 14px; }
+.pgroup { display: flex; flex-direction: column; gap: 8px; }
+.pitems { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
+.pcard { flex: none; width: 104px; border: 0; background: var(--panel); border-radius: 16px; padding: 10px 8px 9px; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: var(--shadow); cursor: grab; touch-action: none; transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s; user-select: none; }
+.pcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.pcard:active { cursor: grabbing; }
+.pcard .pv { width: 46px; height: 56px; display: block; position: relative; }
+.pcard .pv.tall { width: 30px; height: 70px; }
+.pcard .pv svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.pcard .pn { font-size: 12.5px; font-weight: 600; text-align: center; line-height: 1.2; }
+.pcard .pw { font-size: 11.5px; color: var(--muted); }
+.ghost { position: fixed; left: 0; top: 0; width: 80px; height: 80px; z-index: 80; pointer-events: none; filter: drop-shadow(0 10px 20px rgba(0,0,0,.3)); opacity: .92; }
+.ghost svg { width: 100%; height: 100%; }
+.ghost .pv { width: 100%; height: 100%; display: block; }
+.ghost .bw { display: none; }
+.themes { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.theme { border: 0; padding: 8px 8px 12px; display: flex; flex-direction: column; gap: 8px; text-align: center; transition: transform .25s, box-shadow .25s; }
+.theme:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.theme svg { width: 100%; height: auto; border-radius: 10px; display: block; }
+.colorbox { box-shadow: none; background: var(--fill); gap: 22px; }
+.sw.big { width: 44px; height: 44px; }
+.handles { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.handles button { border: 0; background: var(--panel); border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12.5px; box-shadow: var(--shadow); }
+.handles button svg { width: 64px; height: 60px; }
+.handles button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.donebox { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 20px; align-items: center; }
+.bigprice { display: flex; flex-direction: column; gap: 2px; }
+.bigprice b { font-family: var(--f-display); font-size: 40px; font-weight: 700; letter-spacing: -.035em; }
+.facts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.facts li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.facts li span { color: var(--muted); }
+.facts li b { font-weight: 600; text-align: right; }
+@media (max-width: 1000px) {
+  .builder { grid-template-columns: minmax(0,1fr); }
+  .bside { position: static; order: -1; }
+  .b3d { height: 40vh; }
+  .themes { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .donebox { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 640px) {
+  .bsteps button { padding-right: 8px; font-size: 13px; }
+  .bsteps button:not([aria-current="step"]) { font-size: 0; gap: 0; padding: 4px; }
+  .bsteps button:not([aria-current="step"]) span { font-size: 13px; }
+  .capbar { grid-template-columns: minmax(0,1fr); }
+  .boardwrap { justify-content: flex-start; }
+}
+
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -492,7 +604,8 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   </div>
   <nav class="wrap tabs" id="tabs" role="tablist" aria-label="Раздели">
     <button role="tab" data-view="home" aria-selected="true"><svg class="ic"><use href="#i-home"/></svg>Начало</button>
-    <button role="tab" data-view="project" aria-selected="false"><svg class="ic"><use href="#i-cube"/></svg>3D редактор</button>
+    <button role="tab" data-view="builder" aria-selected="false"><svg class="ic"><use href="#i-cube"/></svg>Създай кухня</button>
+    <button role="tab" data-view="project" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-layers"/></svg>Разширен редактор</button>
     <button role="tab" data-view="ai" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>AI от скица</button>
     <button role="tab" data-view="ar" aria-selected="false"><svg class="ic"><use href="#i-ar"/></svg>AR в стаята</button>
     <button role="tab" data-view="request" aria-selected="false" class="client-only"><svg class="ic"><use href="#i-file"/></svg>Заявка</button>
@@ -521,7 +634,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         </div>
         <div class="brands anim-in" aria-label="Материали и обков"><span>EGGER</span><span>Kronospan</span><span>Kastamonu</span><span>Blum</span><span>GTV</span><span>Hettich</span></div>
         <div class="row anim-in">
-          <button class="btn primary lg" data-go="project">Създай своя кухня <svg class="ic"><use href="#i-arrow"/></svg></button>
+          <button class="btn primary lg" data-go="builder">Създай своя кухня <svg class="ic"><use href="#i-arrow"/></svg></button>
           <button class="btn lg" data-go="ai"><svg class="ic"><use href="#i-sparkles"/></svg>От скица с AI</button>
         </div>
       </div>
@@ -535,16 +648,16 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
             <div class="kv"><span>Плочи</span><b id="heroBoard">—</b></div>
             <div class="kv"><span>Фронтове</span><b id="heroFront">—</b></div>
             <div class="kv"><span>Обков</span><b id="heroHw">—</b></div>
-            <button class="btn primary sm" data-go="project" style="margin-top:4px">Отвори в редактора</button>
+            <button class="btn primary sm" data-go="builder" style="margin-top:4px">Създай своя</button>
           </div>
         </div>
       </div>
     </div>
     <div class="features">
-      <button class="card feature anim-card" data-go="project">
+      <button class="card feature anim-card" data-go="builder">
         <span class="fi"><svg class="ic lg"><use href="#i-cube"/></svg></span>
-        <h3>Онлайн конфигуратор</h3><p>Мивката отива при водата, плочата под абсорбатора, а горните шкафове заобикалят прозореца. Сами.</p>
-        <span class="go">Отвори редактора <svg class="ic"><use href="#i-arrow"/></svg></span>
+        <h3>Създай кухня за 5 стъпки</h3><p>Избери готова кухня или започни от нулата. Плъзгаш шкафовете, избираш цветовете и виждаш цената.</p>
+        <span class="go">Започни <svg class="ic"><use href="#i-arrow"/></svg></span>
       </button>
       <button class="card feature anim-card" data-go="cut">
         <span class="fi"><svg class="ic lg"><use href="#i-cut"/></svg></span>
@@ -601,6 +714,21 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <div class="qr" id="siteQr"></div>
         <div><b>Сканирай с телефона</b><br><a class="small" id="siteLink" href="https://modulia-bg.netlify.app" target="_blank" rel="noopener">modulia-bg.netlify.app</a></div>
       </div>
+    </div>
+  </section>
+
+  <!-- СЪЗДАЙ КУХНЯ -->
+  <section class="view" id="view-builder">
+    <nav class="bsteps" id="bSteps" aria-label="Стъпки"></nav>
+    <div class="builder">
+      <div class="card pad bmain">
+        <div id="bMain"></div>
+        <div class="row bnav"><button class="btn" id="bBack">← Назад</button><span style="flex:1"></span><button class="btn primary lg" id="bNext">Напред</button></div>
+      </div>
+      <aside class="bside">
+        <div class="stage3d b3d" id="b3d"><div class="overlay-tl"><span class="glass">3D · завърти с мишка или пръст</span></div></div>
+        <div class="card pad bprice"><span class="muted small">Ориентировъчна цена с ДДС</span><b id="bPrice">—</b><span class="small muted" id="bSum"></span><button class="btn primary" data-go="request">Изпрати заявка към цех</button></div>
+      </aside>
     </div>
   </section>
 
@@ -958,4 +1086,5 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 <script src="js/view3d.js"></script>
 <script src="js/app.js"></script>
 <script src="js/features.js"></script>
+<script src="js/builder.js"></script>
 <script src="js/platform.js"></script>

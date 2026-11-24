@@ -95,7 +95,7 @@
   let rebuildTimer = 0;
   M.recompute = function (opts = {}) {
     const P = S.project;
-    if (P.auto || !P.modules.length) {
+    if (P.auto) {
       const r = M.autoLayout(P.room);
       P.modules = r.modules;
       S.notes = r.notes;
@@ -152,7 +152,7 @@
   };
 
   /* ---------- Режим и раздели ---------- */
-  const PRO_VIEWS = ['cut', 'offer', 'inbox', 'prices'];
+  const PRO_VIEWS = ['project', 'cut', 'offer', 'inbox', 'prices'];
   const CLIENT_VIEWS = ['request'];
   function setMode(mode) {
     S.mode = mode;
@@ -981,6 +981,7 @@
       if (v && v !== S.view) setView(v, false);
     });
     M.emit('ready');
+    M.emit('view', S.view);
   }
   M.on('init', init);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(() => M.emit('init')));

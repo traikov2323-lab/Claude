@@ -247,6 +247,7 @@
       if (loud) M.toast(e.status === 401 ? 'Влез отново, за да запазиш' : 'Проектът не се запази');
     }
   }
+  P.saveNow = () => saveProject(true);
   M.on('changed', () => {
     if (!P.user) return;
     clearTimeout(saveTimer);

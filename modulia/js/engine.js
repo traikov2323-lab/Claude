@@ -302,20 +302,43 @@
   M.pack = function (room, mods) {
     const notes = [];
     const walls = room.shape === 'L' ? ['A', 'B'] : ['A'];
+    for (const m of mods) if (!walls.includes(m.wall)) m.wall = 'A';
+    // при права кухня няма ъглов шкаф
+    if (room.shape !== 'L') for (let i = mods.length - 1; i >= 0; i--) if (mods[i].type === 'base-corner') mods.splice(i, 1);
     for (const wall of walls) {
+      const len = wall === 'A' ? room.wallA : room.wallB;
       for (const row of ['base', 'wall']) {
-        const list = mods.filter((m) => m.wall === wall && m.row === row).sort((a, b) => a.x - b.x);
+        const all = mods.filter((m) => m.wall === wall && m.row === row).sort((a, b) => a.x - b.x);
         const r = M.rowRange(room, wall, row);
+        let end = r[1];
+        // ъгловият шкаф стои винаги в края на стена A
+        const corner = all.find((m) => m.type === 'base-corner');
+        if (corner) {
+          corner.w = K.cornerW;
+          corner.x = len - K.cornerW;
+          end = corner.x;
+        }
+        const list = all.filter((m) => m !== corner);
+        // горните шкафове заобикалят високите колони
+        const talls = row === 'wall' ? mods.filter((m) => m.wall === wall && M.isTall(m.type)).map((m) => [m.x, m.x + m.w]).sort((a, b) => a[0] - b[0]) : [];
         let x = r[0];
         for (const m of list) {
+          let moved = true;
+          while (moved) {
+            moved = false;
+            for (const t of talls)
+              if (x < t[1] - 0.5 && x + m.w > t[0] + 0.5) {
+                x = t[1];
+                moved = true;
+              }
+          }
           m.x = x;
           x += m.w;
         }
-        if (x > r[1] + 0.5) notes.push({ lvl: 'warn', t: `Стена ${wall}, ${row === 'base' ? 'долен' : 'горен'} ред: модулите надвишават стената с ${Math.round(x - r[1])} мм.` });
+        const limit = row === 'wall' ? r[1] : end;
+        if (x > limit + 0.5) notes.push({ lvl: 'warn', t: `Стена ${wall}, ${row === 'base' ? 'долен' : 'горен'} ред: шкафовете излизат с ${Math.round((x - limit) / 10)} см извън стената.` });
       }
     }
-    // модули от премахнати стени
-    for (const m of mods) if (!walls.includes(m.wall)) m.wall = 'A';
     M.codeModules(M.sortModules(mods));
     return notes;
   };
@@ -904,6 +927,12 @@
     for (const f of room.features.filter((f) => f.type === 'window')) {
       if (f.sill < d.counterTop + 20 && modules.some((m) => m.wall === f.wall && m.row === 'base' && m.type !== 'gap' && overlaps(m.x, m.x + m.w, f.x, f.x + f.w)))
         out.push({ lvl: 'warn', t: `Перваза (${f.sill} мм) е по-нисък от плота (${d.counterTop} мм). Прозорецът няма да се отваря свободно.` });
+    }
+    for (const f of room.features.filter((f) => f.type === 'window')) {
+      const top = f.sill + f.h;
+      for (const m of modules.filter((m) => m.wall === f.wall && m.row === 'wall' && m.type !== 'gap'))
+        if (overlaps(m.x, m.x + m.w, f.x, f.x + f.w) && top > d.upperBottom + 40 && f.sill < d.upperBottom + d.wallH)
+          out.push({ lvl: 'warn', t: `Горният шкаф ${m.code} закрива прозореца. Сложи „Свободно място“ над прозореца.` });
     }
     if (room.height < d.upperBottom + d.wallH + 30) out.push({ lvl: 'warn', t: `Горните шкафове (до ${d.upperBottom + d.wallH} мм) не се побират под тавана (${room.height} мм).` });
     if (!modules.some((m) => m.type === 'base-sink')) out.push({ lvl: 'info', t: 'В проекта няма шкаф за мивка.' });
