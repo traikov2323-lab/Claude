@@ -1,9 +1,9 @@
 // AI за снимки: разчита стил на кухня и размери на стая. Claude през Netlify AI Gateway (без собствен ключ).
-// POST /api/ai  { task: "style" | "room" | "sketch", prompt: string, image: base64, mediaType: "image/jpeg" }
+// POST /api/ai  { task: "style" | "room" | "sketch" | "bath" | "bathstyle", prompt: string, image: base64, mediaType: "image/jpeg" }
 import Anthropic from "@anthropic-ai/sdk";
 import type { Config, Context } from "@netlify/functions";
 
-const TASKS = new Set(["style", "room", "sketch"]);
+const TASKS = new Set(["style", "room", "sketch", "bath", "bathstyle"]);
 const MEDIA = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export default async (req: Request, context: Context) => {
@@ -30,7 +30,7 @@ export default async (req: Request, context: Context) => {
       model: "claude-sonnet-5-5",
       max_tokens: 2000,
       system:
-        "You are a kitchen design assistant inside a Bulgarian kitchen configurator. You read photos and hand sketches of kitchens and rooms. Always reply with exactly one JSON value and nothing else. Text values meant for the user are in Bulgarian.",
+        "You are a kitchen and bathroom design assistant inside a Bulgarian interior configurator. You read photos and hand sketches of kitchens, bathrooms and rooms. Always reply with exactly one JSON value and nothing else. Text values meant for the user are in Bulgarian.",
       messages: [
         {
           role: "user",

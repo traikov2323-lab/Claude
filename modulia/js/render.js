@@ -147,8 +147,8 @@ Keep the room from image 1: walls, ceiling, windows, doors, floor, perspective, 
     return modal;
   }
 
-  function compareHtml(before, after) {
-    return `<div class="compare" id="rCmp"><img src="${before}" alt="3D модел"><div class="after" style="clip-path:inset(0 0 0 50%)"><img src="${after}" alt="Фотореалистичен рендер"></div><div class="handle" style="left:50%"><span>‹ ›</span></div><span class="tag l">3D модел</span><span class="tag r">Реалистично</span></div>`;
+  function compareHtml(before, after, lb = ['3D модел', 'Реалистично']) {
+    return `<div class="compare" id="rCmp"><img src="${before}" alt="${lb[0]}"><div class="after" style="clip-path:inset(0 0 0 50%)"><img src="${after}" alt="${lb[1]}"></div><div class="handle" style="left:50%"><span>‹ ›</span></div><span class="tag l">${lb[0]}</span><span class="tag r">${lb[1]}</span></div>`;
   }
   function bindCompare() {
     const box = $('#rCmp');
@@ -191,8 +191,31 @@ Keep the room from image 1: walls, ceiling, windows, doors, floor, perspective, 
       images = [toB64(before)];
       prompt = scenePrompt();
     }
-    const steps = ['Подготвям 3D изгледа…', 'AI нанася материалите…', 'Добавям светлина и сенки…', 'Доизпипвам детайлите…'];
-    open(`<div class="row"><h2 style="font-size:24px">${mode === 'room' ? 'Новата кухня в твоята снимка' : 'Фотореалистичен рендер'}</h2><button class="xbtn" data-rclose aria-label="Затвори">✕</button></div>
+    return M.renderAI({
+      title: mode === 'room' ? 'Новата кухня в твоята снимка' : 'Фотореалистичен рендер',
+      mode,
+      before,
+      images,
+      prompt,
+      again: () => run(mode, src),
+      fixLabel: 'Коригирай кухнята',
+      onRequest: () => M.setView('request'),
+    });
+  }
+
+  // Общ прозорец за AI рендер (кухня, баня): чакане, сравнение преди/след, сваляне, нов вариант
+  M.renderAI = async function (o) {
+    if (!(M.platform && M.platform.hosted)) {
+      open(`<div class="row"><h2 style="font-size:24px">Фотореалистичен рендер</h2><button class="xbtn" data-rclose aria-label="Затвори">✕</button></div><p class="muted" style="margin:0">Рендерът се прави на сървъра на Модулия. Отвори приложението на неговия адрес.</p><div class="row" style="gap:16px"><div style="width:140px;height:140px;background:#fff;border-radius:14px;padding:10px">${M.qrSvg('https://modulia-bg.netlify.app/')}</div><a class="btn primary" href="https://modulia-bg.netlify.app/" target="_blank" rel="noopener">Отвори modulia-bg.netlify.app</a></div>`);
+      return;
+    }
+    const mode = o.mode || 'scene';
+    const before = o.before;
+    const images = o.images.map((u) => (typeof u === 'string' ? toB64(u) : u));
+    const prompt = o.prompt;
+    const labels = o.labels || ['3D модел', 'Реалистично'];
+    const steps = ['Подготвям изгледа…', 'AI нанася материалите…', 'Добавям светлина и сенки…', 'Доизпипвам детайлите…'];
+    open(`<div class="row"><h2 style="font-size:24px">${esc(o.title)}</h2><button class="xbtn" data-rclose aria-label="Затвори">✕</button></div>
       <div class="rwait"><img src="${before}" alt=""><div class="rscan"></div><div class="rmsg"><span class="spinner"></span> <span id="rStep">${steps[0]}</span> <span class="mono" id="rSec">0 s</span></div></div>
       <p class="small muted" style="margin:0">Обикновено отнема 10–40 секунди. Подредбата и размерите остават същите.</p>`);
     let sec = 0;
@@ -223,24 +246,26 @@ Keep the room from image 1: walls, ceiling, windows, doors, floor, perspective, 
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.image) throw new Error(j.error || (r.status === 429 ? 'Твърде много заявки. Опитай след минута.' : 'Рендерът не стана. Опитай отново.'));
       clearInterval(timer);
-      open(`<div class="row"><h2 style="font-size:24px">${mode === 'room' ? 'Новата кухня в твоята снимка' : 'Фотореалистичен рендер'}</h2><span class="pill ok">готово за ${sec} s</span><button class="xbtn" data-rclose aria-label="Затвори">✕</button></div>
-        ${compareHtml(before, j.image)}
-        <p class="small muted" style="margin:0">Плъзни, за да сравниш 3D модела с реалистичния рендер. AI рендерът е визуализация: размерите и цената идват от проекта.</p>
-        <div class="row"><button class="btn primary" id="rSave"><svg class="ic"><use href="#i-download"/></svg>Свали снимката</button><button class="btn" id="rAgain"><svg class="ic"><use href="#i-sparkles"/></svg>Нов вариант</button><button class="btn" data-rclose>Коригирай кухнята</button><button class="btn" id="rReq">Изпрати заявка</button></div>`);
+      open(`<div class="row"><h2 style="font-size:24px">${esc(o.title)}</h2><span class="pill ok">готово за ${sec} s</span><button class="xbtn" data-rclose aria-label="Затвори">✕</button></div>
+        ${compareHtml(before, j.image, labels)}
+        <p class="small muted" style="margin:0">Плъзни, за да сравниш. AI рендерът е визуализация: размерите, количествата и цената идват от проекта.</p>
+        <div class="row"><button class="btn primary" id="rSave"><svg class="ic"><use href="#i-download"/></svg>Свали снимката</button><button class="btn" id="rAgain"><svg class="ic"><use href="#i-sparkles"/></svg>Нов вариант</button><button class="btn" data-rclose>${esc(o.fixLabel || 'Коригирай')}</button>${o.onRequest ? '<button class="btn" id="rReq">Изпрати заявка</button>' : ''}</div>`);
       bindCompare();
       $('#rSave').addEventListener('click', async () => M.saveFile('modulia-realistichno.' + (j.image.startsWith('data:image/png') ? 'png' : 'jpg'), await (await fetch(j.image)).blob()));
-      $('#rAgain').addEventListener('click', () => run(mode, src));
-      $('#rReq').addEventListener('click', () => {
-        modal.hidden = true;
-        M.setView('request');
-      });
+      $('#rAgain').addEventListener('click', () => (o.again ? o.again() : M.renderAI(o)));
+      if (o.onRequest)
+        $('#rReq').addEventListener('click', () => {
+          modal.hidden = true;
+          o.onRequest();
+        });
       S.lastRender = j.image;
+      return j.image;
     } catch (e) {
       clearInterval(timer);
       open(`<div class="row"><h2 style="font-size:24px">Рендерът не стана</h2><button class="xbtn" data-rclose aria-label="Затвори">✕</button></div><p class="muted" style="margin:0">${esc(e.message || 'Опитай отново.')}</p><div class="row"><button class="btn primary" id="rAgain">Опитай отново</button></div>`);
-      $('#rAgain').addEventListener('click', () => run(mode, src));
+      $('#rAgain').addEventListener('click', () => (o.again ? o.again() : M.renderAI(o)));
     }
-  }
+  };
   M.photoreal = run;
 
   M.on('ready', () => {

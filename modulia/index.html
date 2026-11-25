@@ -579,6 +579,49 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 .compare .tag.r { right: 12px; }
 .btn.magic { background: linear-gradient(90deg, #0071e3, #8e44ec); color: #fff; }
 .btn.magic:hover { filter: brightness(1.08); }
+#baTotal { font-family: var(--f-display); font-size: 26px; font-weight: 700; letter-spacing: -.03em; }
+.bah { font-size: 15px; margin: 6px 0 -4px; }
+.baplan svg { width: 100%; height: auto; max-height: 64vh; display: block; touch-action: none; user-select: none; }
+.baplan .fx { cursor: grab; }
+.baplan .fx:active { cursor: grabbing; }
+.bachk { padding: 6px 10px; border-radius: 10px; background: rgba(52,199,89,.1); color: var(--ink); }
+.bachk.warn { background: rgba(255,159,10,.14); }
+.bavars { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.bavar { border: 0; background: var(--fill); border-radius: 14px; padding: 8px; text-align: left; color: var(--ink); display: flex; flex-direction: column; gap: 4px; transition: .2s; }
+.bavar[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); }
+.bavar svg { width: 100%; height: 86px; display: block; }
+.bavar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bawalls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.bawall { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.bawall canvas { width: 100%; height: auto; border-radius: 10px; display: block; box-shadow: var(--shadow); }
+#ba3d { height: min(62vh, 560px); }
+.glassbtn { border: 0; cursor: pointer; }
+.batiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 10px; max-height: 470px; overflow: auto; padding: 3px; }
+.btile { border: 0; padding: 0; overflow: hidden; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); text-align: left; color: inherit; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; }
+.btile:hover { transform: translateY(-2px); }
+.btile[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--accent); }
+.btile img, .btile .noimg { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: grid; place-items: center; background: var(--fill); color: var(--muted); font-size: 13px; }
+.btile .m { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 12px; line-height: 1.3; }
+.btile .m b { font-size: 13px; }
+.gdot { display: inline-flex; align-items: center; gap: 6px; border: 0; background: var(--fill-2); border-radius: 999px; padding: 4px 11px 4px 5px; font-size: 12.5px; color: var(--ink); }
+.gdot span { width: 18px; height: 18px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); }
+.gdot[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); }
+.seg button:disabled { opacity: .35; cursor: not-allowed; }
+.shops { display: flex; gap: 4px; flex-wrap: wrap; }
+.shops a { font-size: 11.5px; padding: 3px 8px; border-radius: 999px; background: var(--fill-2); color: var(--ink); text-decoration: none; white-space: nowrap; }
+.shops a:hover { background: var(--accent-soft); color: var(--accent); }
+.bakpi { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.bakpi div { background: var(--fill); border-radius: 12px; padding: 10px 12px; }
+.bakpi b { display: block; font-family: var(--f-display); font-size: 20px; letter-spacing: -.02em; }
+.batable td.wrap { white-space: normal; min-width: 230px; }
+.batable tr.sec td { background: var(--fill); }
+.batable tr.off td { opacity: .5; }
+@media (max-width: 640px) {
+  .bawalls { grid-template-columns: minmax(0,1fr); }
+  .bakpi { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .bavar svg { height: 60px; }
+  .bavar span { font-size: 11px; }
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -598,6 +641,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></symbol>
   <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-bath" viewBox="0 0 24 24"><path d="M3 12h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M6 12V5.5A2.5 2.5 0 0 1 8.5 3c1.2 0 2.2.8 2.4 2"/><path d="M7 19l-1 2M17 19l1 2"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="3.5"/></symbol>
@@ -637,6 +681,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
     <button role="tab" data-view="home" aria-selected="true"><svg class="ic"><use href="#i-home"/></svg>Начало</button>
     <button role="tab" data-view="builder" aria-selected="false"><svg class="ic"><use href="#i-cube"/></svg>Създай кухня</button>
     <button role="tab" data-view="photo" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
+    <button role="tab" data-view="bath" aria-selected="false"><svg class="ic"><use href="#i-bath"/></svg>Баня</button>
     <button role="tab" data-view="project" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-layers"/></svg>Разширен редактор</button>
     <button role="tab" data-view="ai" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>AI от скица</button>
     <button role="tab" data-view="ar" aria-selected="false"><svg class="ic"><use href="#i-ar"/></svg>AR в стаята</button>
@@ -668,6 +713,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <div class="row anim-in">
           <button class="btn primary lg" data-go="builder">Създай своя кухня <svg class="ic"><use href="#i-arrow"/></svg></button>
           <button class="btn lg" data-go="photo"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
+          <button class="btn lg" data-go="bath"><svg class="ic"><use href="#i-bath"/></svg>Баня</button>
         </div>
       </div>
       <div class="tablet anim-in">
@@ -686,6 +732,11 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       </div>
     </div>
     <div class="features">
+      <button class="card feature anim-card" data-go="bath">
+        <span class="fi"><svg class="ic lg"><use href="#i-bath"/></svg></span>
+        <h3>Баня от снимка на мазилка</h3><p>Снимай банята. AI разчита размерите и изводите, подрежда душа и тоалетната, показва плочките по стени и смята м², лепило, фуга и цена.</p>
+        <span class="go">Направи банята <svg class="ic"><use href="#i-arrow"/></svg></span>
+      </button>
       <button class="card feature anim-card" data-go="builder">
         <span class="fi"><svg class="ic lg"><use href="#i-cube"/></svg></span>
         <h3>Създай кухня за 5 стъпки</h3><p>Избери готова кухня или започни от нулата. Плъзгаш шкафовете, избираш цветовете и виждаш цената.</p>
@@ -913,6 +964,110 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       <div class="stack">
         <div class="card pad" id="phResult"><div class="empty">Тук ще видиш разпознатия стил и цената на новата си кухня.</div></div>
         <div class="stage3d" id="ph3d" style="height:min(50vh,460px)"><div class="overlay-tl"><span class="glass">3D · новата ти кухня</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- БАНЯ -->
+  <section class="view" id="view-bath">
+    <div class="split">
+      <div class="card pad stack">
+        <h2>Баня</h2>
+        <p class="muted" style="margin:0">Снимай банята на мазилка. AI разчита размерите, вратата, прозореца и изводите. Модулия подрежда душа, тоалетната и мивката, показва плочките по стени и смята колко ти трябва и колко струва.</p>
+        <div class="phslots">
+          <label class="drop phslot" for="baPhoto"><img id="baPhotoImg" hidden alt="Твоята баня"><span id="baPhotoTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-camera"/></svg><br><b>1. Твоята баня</b><br><span class="small muted">на мазилка или за ремонт · снимай от вратата</span></span></label>
+          <input type="file" id="baPhoto" accept="image/*" capture="environment" hidden>
+          <label class="drop phslot" for="baInsp"><img id="baInspImg" hidden alt="Баня, която харесваш"><span id="baInspTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-sparkles"/></svg><br><b>2. Баня, която харесваш</b><br><span class="small muted">по желание · Pinterest, Instagram</span></span></label>
+          <input type="file" id="baInsp" accept="image/*" hidden>
+        </div>
+        <div class="field"><label for="baNotes">Бележки (по желание)</label><textarea id="baNotes" rows="2" placeholder="Например: дължината е 2,40 м, щрангът е в левия ъгъл"></textarea></div>
+        <div class="row"><button class="btn primary lg" id="baRun"><svg class="ic"><use href="#i-sparkles"/></svg>Разчети и подреди</button><button class="btn" id="baDemo">Пример</button></div>
+        <div class="aistatus muted" id="baStatus"></div>
+
+        <h3 class="bah">Размери, см</h3>
+        <div class="grid3">
+          <div class="field"><label for="baL">Дължина</label><input id="baL" type="number" inputmode="numeric" min="100" max="700"></div>
+          <div class="field"><label for="baW">Ширина</label><input id="baW" type="number" inputmode="numeric" min="90" max="600"></div>
+          <div class="field"><label for="baH">Височина</label><input id="baH" type="number" inputmode="numeric" min="210" max="400"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label for="baDoorWall">Врата</label><select id="baDoorWall"></select></div>
+          <div class="field"><label for="baDoorX">от левия край</label><input id="baDoorX" type="number" inputmode="numeric"></div>
+          <div class="field"><label for="baDoorW">ширина</label><input id="baDoorW" type="number" inputmode="numeric"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="baWin"> Има прозорец</label>
+        <div id="baWinF" class="stack" style="gap:10px" hidden>
+          <div class="grid3">
+            <div class="field"><label for="baWinWall">Стена</label><select id="baWinWall"></select></div>
+            <div class="field"><label for="baWinX">от левия край</label><input id="baWinX" type="number" inputmode="numeric" value="60"></div>
+            <div class="field"><label for="baWinW">ширина</label><input id="baWinW" type="number" inputmode="numeric" value="60"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="baWinS">парапет</label><input id="baWinS" type="number" inputmode="numeric" value="130"></div>
+            <div class="field"><label for="baWinH">височина</label><input id="baWinH" type="number" inputmode="numeric" value="60"></div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label for="baStackWall">Щранг (канал)</label><select id="baStackWall"></select></div>
+          <div class="field"><label for="baStackX">от левия край</label><input id="baStackX" type="number" inputmode="numeric"></div>
+        </div>
+        <p class="small muted" style="margin:-4px 0 0">Стените са гледани отвътре на банята. Задната стена е тази срещу вратата.</p>
+
+        <h3 class="bah">Оборудване</h3>
+        <div class="seg" id="baWet"><button data-v="shower">Душ walk-in</button><button data-v="bath">Вана</button><button data-v="both">Душ и вана</button></div>
+        <div class="seg" id="baSink"><button data-v="single">Мивка</button><button data-v="double">Двойна мивка</button><button data-v="none">Без мивка</button></div>
+        <div class="grid2">
+          <label class="check"><input type="checkbox" id="baI_wc"> Конзолна тоалетна</label>
+          <label class="check"><input type="checkbox" id="baI_washer"> Пералня</label>
+          <label class="check"><input type="checkbox" id="baI_radiator"> Лира за кърпи</label>
+          <label class="check"><input type="checkbox" id="baI_niche"> Ниша в душа</label>
+        </div>
+        <button class="btn" id="baRelayout"><svg class="ic"><use href="#i-sparkles"/></svg>Подреди наново</button>
+      </div>
+
+      <div class="stack">
+        <div class="card pad stack">
+          <div class="row" style="justify-content:space-between">
+            <div class="seg" id="baTab"><button data-t="plan" aria-pressed="true">План</button><button data-t="3d">3D</button><button data-t="walls">Плочки по стени</button></div>
+            <span class="big" id="baTotal">—</span>
+          </div>
+          <div id="baVariants" class="bavars"></div>
+          <div id="baPlanBox" class="baplan"></div>
+          <div id="ba3d" class="stage3d" hidden><div class="overlay-tl"><span class="glass">3D · завърти с мишка или пръст</span><button class="glass glassbtn" id="baHome3d">Изглед от вратата</button></div></div>
+          <div id="baWalls" class="bawalls" hidden></div>
+          <p class="small muted" style="margin:0">Плъзгай уредите в плана. Подреждането спазва свободното място пред тях, вратата и щранга.</p>
+          <div id="baChecks" class="small stack" style="gap:4px"></div>
+          <div class="row"><button class="btn magic" id="baReal"><svg class="ic"><use href="#i-sparkles"/></svg>Фотореалистичен рендер</button><button class="btn magic" id="baRealPhoto" hidden><svg class="ic"><use href="#i-camera"/></svg>Готовата баня в моята снимка</button></div>
+        </div>
+
+        <div class="card pad stack">
+          <h3>Готови стилове</h3>
+          <div class="bastyles styles" id="baStyles"></div>
+        </div>
+
+        <div class="card pad stack">
+          <div class="row" style="justify-content:space-between"><h3>Плочки</h3><div class="seg" id="baSurf"><button data-s="floor">Под</button><button data-s="wall">Стени</button><button data-s="accent">Акцент</button></div></div>
+          <div class="batiles" id="baTiles"></div>
+          <div class="row" id="baPatRow"><span class="lbl">Редене</span><div class="seg" id="baPat"></div></div>
+          <div class="row" id="baAccRow"><span class="lbl">Акцент върху</span><div class="seg" id="baAcc"></div></div>
+          <div class="row"><span class="lbl">Плочки по стените</span><div class="seg" id="baHt"></div></div>
+          <div class="row"><span class="lbl">Фуга</span><div class="row" id="baGrout"></div><div class="seg" id="baJoint"></div></div>
+        </div>
+
+        <div class="card pad stack">
+          <h3>Смесители, душ и мивка</h3>
+          <div class="row"><span class="lbl">Клас</span><div class="seg" id="baTier"></div></div>
+          <div class="row"><span class="lbl">Цвят на смесителите</span><div class="row" id="baFin"></div></div>
+          <div class="row"><span class="lbl">Шкаф за мивката</span><div class="row" id="baVan"></div></div>
+        </div>
+
+        <div class="card pad stack">
+          <div class="row" style="justify-content:space-between"><h3>Количествена сметка</h3><label class="check small"><input type="checkbox" id="baLabor"> С труд</label></div>
+          <div class="bakpi" id="baKpi"></div>
+          <div class="tablewrap"><table class="t batable" id="baTable"></table></div>
+          <p class="small muted" style="margin:0">Количествата са с фира според шарката. Цените са ориентировъчни, с ДДС. Връзките търсят продукта в сайта на магазина, където виждаш цена и наличност в момента.</p>
+          <div class="row"><button class="btn primary" id="baReq">Изпрати запитване към майстори</button><button class="btn" id="baPdf"><svg class="ic"><use href="#i-file"/></svg>PDF</button><button class="btn" id="baCsv"><svg class="ic"><use href="#i-download"/></svg>Количества CSV</button></div>
+        </div>
       </div>
     </div>
   </section>
@@ -1149,4 +1304,5 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 <script src="js/builder.js"></script>
 <script src="js/photo.js"></script>
 <script src="js/render.js"></script>
+<script src="js/bath.js"></script>
 <script src="js/platform.js"></script>

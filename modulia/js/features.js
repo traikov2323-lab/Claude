@@ -214,6 +214,8 @@
     return M.saveFile(filename, blob, 'application/pdf');
   }
 
+  M.pdfFrom = pdfFrom;
+
   /* ---------- Снимка ---------- */
   M.on('ready', () => {
     $('#btnShot').addEventListener('click', async () => {
