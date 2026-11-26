@@ -191,12 +191,20 @@ Reply with ONLY this JSON:
     $('#phInsp').addEventListener('change', async (e) => {
       const f = e.target.files[0];
       e.target.value = '';
-      if (f) setImg('insp', await M.shrinkImage(f));
+      if (f) try {
+        setImg('insp', await M.shrinkImage(f));
+      } catch (err) {
+        M.toast(M.photoError(err), 5000);
+      }
     });
     $('#phRoom').addEventListener('change', async (e) => {
       const f = e.target.files[0];
       e.target.value = '';
-      if (f) setImg('room', await M.shrinkImage(f));
+      if (f) try {
+        setImg('room', await M.shrinkImage(f));
+      } catch (err) {
+        M.toast(M.photoError(err), 5000);
+      }
     });
     $('#phRun').addEventListener('click', run);
     $('#phDemo').addEventListener('click', () => {

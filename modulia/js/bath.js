@@ -1857,8 +1857,15 @@ Lighting: soft natural daylight plus warm downlights, realistic soft shadows, re
   /* ---------- Снимки ---------- */
   async function takePhoto(input, which) {
     const f = input.files && input.files[0];
+    input.value = '';
     if (!f) return;
-    const blob = await M.shrinkImage(f);
+    let blob;
+    try {
+      blob = await M.shrinkImage(f);
+    } catch (e) {
+      $('#baStatus').textContent = M.photoError(e);
+      return M.toast(M.photoError(e), 5000);
+    }
     const url = await new Promise((res) => {
       const r = new FileReader();
       r.onload = () => res(r.result);

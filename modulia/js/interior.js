@@ -354,8 +354,15 @@ Reply with ONLY this JSON (Bulgarian text):
       }
       if (t.id === 'inPhoto') {
         const f = t.files && t.files[0];
+        t.value = '';
         if (!f) return;
-        const blob = await M.shrinkImage(f);
+        let blob;
+        try {
+          blob = await M.shrinkImage(f);
+        } catch (err) {
+          $('#inStatus').textContent = M.photoError(err);
+          return M.toast(M.photoError(err), 5000);
+        }
         PH.photo = blob;
         PH.photoUrl = await new Promise((res) => {
           const r = new FileReader();
@@ -370,6 +377,7 @@ Reply with ONLY this JSON (Bulgarian text):
         renderThumbs();
         renderMain();
         renderShop();
+        $('#inStatus').innerHTML = '<span class="pill ok">снимката е качена</span> Избери стил и бюджет и натисни „Създай 3 варианта“.';
       }
     });
   }

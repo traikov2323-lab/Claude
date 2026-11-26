@@ -297,7 +297,7 @@ table.t td.num, table.t th.num { text-align: right; font-family: var(--f-mono); 
 .split { display: grid; grid-template-columns: 380px minmax(0,1fr); gap: 20px; align-items: start; }
 .stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .drop { border: 1.5px dashed var(--line-2); border-radius: var(--r); padding: 22px; text-align: center; background: var(--fill); display: flex; flex-direction: column; gap: 8px; align-items: center; cursor: pointer; transition: border-color .2s, background .2s; }
-.drop:hover { border-color: var(--accent); background: var(--accent-soft); }
+.drop.over, .drop:hover { border-color: var(--accent); background: var(--accent-soft); }
 .drop img { max-height: 220px; max-width: 100%; border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.18); }
 .variants { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
 .variant { overflow: hidden; display: flex; flex-direction: column; transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s; }
@@ -984,7 +984,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
           <label class="drop phslot" for="phInsp"><img id="phInspImg" hidden alt="Харесвана кухня"><span id="phInspTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-sparkles"/></svg><br><b>1. Кухня, която харесваш</b><br><span class="small muted">снимка от Instagram, Pinterest, каталог</span></span></label>
           <input type="file" id="phInsp" accept="image/*" hidden>
           <label class="drop phslot" for="phRoom"><img id="phRoomImg" hidden alt="Твоята кухня"><span id="phRoomTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-camera"/></svg><br><b>2. Твоята кухня или стая</b><br><span class="small muted">по желание · снимай стената отпред</span></span></label>
-          <input type="file" id="phRoom" accept="image/*" capture="environment" hidden>
+          <input type="file" id="phRoom" accept="image/*" hidden>
         </div>
         <div class="field"><label for="phNotes">Бележки (по желание)</label><textarea id="phNotes" rows="2" placeholder="Например: стената е 3,40 м, искам хладилник в колона"></textarea></div>
         <div class="row"><button class="btn primary lg" id="phRun"><svg class="ic"><use href="#i-sparkles"/></svg>Направи моята кухня</button><button class="btn" id="phDemo">Пример: Модерен орех</button></div>
@@ -1004,7 +1004,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <h2>Интериор</h2>
         <p class="muted" style="margin:0">Снимай стаята. AI запазва стените, прозорците, вратите и тавана и сменя само мебелите, цветовете, осветлението и декорацията. Получаваш 3 фотореалистични варианта и списък за пазаруване в рамките на бюджета.</p>
         <label class="drop phslot" for="inPhoto"><img id="inPhotoImg" hidden alt="Твоята стая"><span id="inPhotoTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-camera"/></svg><br><b>Снимка на стаята</b><br><span class="small muted">снимай от ъгъла, на дневна светлина</span></span></label>
-        <input type="file" id="inPhoto" accept="image/*" capture="environment" hidden>
+        <input type="file" id="inPhoto" accept="image/*" hidden>
         <div class="field"><span class="lbl">Стая</span><div class="seg" id="inRoom"></div></div>
         <div class="field"><span class="lbl">Стил</span><div class="chips" id="inStyles"></div></div>
         <div class="field"><label for="inBudgetN">Бюджет за продуктите, €</label><div class="row" style="flex-wrap:nowrap"><input type="range" id="inBudgetR" min="100" max="5000" step="50" style="flex:1"><input class="inp" id="inBudgetN" type="number" inputmode="numeric" min="50" style="width:96px"></div></div>
@@ -1040,7 +1040,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <p class="muted" style="margin:0">Снимай банята на мазилка. AI разчита размерите, вратата, прозореца и изводите. Модулия подрежда душа, тоалетната и мивката, показва плочките по стени и смята колко ти трябва и колко струва.</p>
         <div class="phslots">
           <label class="drop phslot" for="baPhoto"><img id="baPhotoImg" hidden alt="Твоята баня"><span id="baPhotoTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-camera"/></svg><br><b>1. Твоята баня</b><br><span class="small muted">на мазилка или за ремонт · снимай от вратата</span></span></label>
-          <input type="file" id="baPhoto" accept="image/*" capture="environment" hidden>
+          <input type="file" id="baPhoto" accept="image/*" hidden>
           <label class="drop phslot" for="baInsp"><img id="baInspImg" hidden alt="Баня, която харесваш"><span id="baInspTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-sparkles"/></svg><br><b>2. Баня, която харесваш</b><br><span class="small muted">по желание · Pinterest, Instagram</span></span></label>
           <input type="file" id="baInsp" accept="image/*" hidden>
         </div>
@@ -1146,7 +1146,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
           <img id="aiPreview" alt="" hidden>
           <span id="aiDropText"><svg class="ic lg" style="stroke:var(--accent-2)"><use href="#i-camera"/></svg><br><b>Качи снимка или скица</b><br><span class="small muted">JPG или PNG. На телефон отваря камерата.</span></span>
         </label>
-        <input type="file" id="aiFile" accept="image/*" capture="environment" hidden>
+        <input type="file" id="aiFile" accept="image/*" hidden>
         <div class="field"><label for="aiNotes">Бележки (по желание)</label><textarea id="aiNotes" rows="3" placeholder="Например: таван 2,60 м, искам хладилник в колона"></textarea></div>
         <div class="row">
           <button class="btn primary" id="aiRun"><svg class="ic"><use href="#i-sparkles"/></svg>Разчети и предложи</button>
@@ -1173,7 +1173,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
           <li>Кухнята застава в реален мащаб. Нагласи ъгъла.</li>
         </ol>
         <label class="btn primary lg" for="arFile"><svg class="ic"><use href="#i-camera"/></svg>Снимай или качи снимка</label>
-        <input type="file" id="arFile" accept="image/*" capture="environment" hidden>
+        <input type="file" id="arFile" accept="image/*" hidden>
         <button class="btn" id="arRecal" disabled>Маркирай ъглите отново</button>
         <div class="range"><span>Завъртане</span><input type="range" id="arYaw" min="-45" max="45" value="0"><span class="mono" id="arYawV">0°</span></div>
         <div class="range"><span>Наклон</span><input type="range" id="arPitch" min="-10" max="25" value="6"><span class="mono" id="arPitchV">6°</span></div>

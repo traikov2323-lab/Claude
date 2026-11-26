@@ -419,24 +419,65 @@
   }
 
   async function shrinkImage(file) {
-    const url = URL.createObjectURL(file);
+    if (!file) throw new Error('Няма файл');
+    let src = null,
+      w = 0,
+      h = 0,
+      url = null;
     try {
-      const img = await new Promise((res, rej) => {
+      // createImageBitmap спазва ориентацията от EXIF и е по-бърз на телефони
+      src = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      w = src.width;
+      h = src.height;
+    } catch (e) {
+      url = URL.createObjectURL(file);
+      src = await new Promise((res, rej) => {
         const i = new Image();
         i.onload = () => res(i);
-        i.onerror = rej;
+        i.onerror = () => rej(new Error(/heic|heif/i.test(file.type + file.name) ? 'heic' : 'decode'));
         i.src = url;
-      });
-      const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      }).finally(() => {});
+      w = src.naturalWidth;
+      h = src.naturalHeight;
+    }
+    try {
+      if (!w || !h) throw new Error('decode');
+      const k = Math.min(1, 1600 / Math.max(w, h));
       const c = document.createElement('canvas');
-      c.width = Math.round(img.naturalWidth * k);
-      c.height = Math.round(img.naturalHeight * k);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      return await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.88));
+      c.width = Math.round(w * k);
+      c.height = Math.round(h * k);
+      c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.88));
+      if (!blob) throw new Error('decode');
+      return blob;
     } finally {
-      URL.revokeObjectURL(url);
+      if (url) URL.revokeObjectURL(url);
+      if (src && src.close) src.close();
     }
   }
+  M.photoError = (e) => (e && e.message === 'heic' ? 'Снимката е във формат HEIC. Избери я от „Снимки“ на телефона или я запази като JPG.' : 'Снимката не може да се отвори. Опитай с друга снимка (JPG или PNG).');
+  // Пускане на файл с мишката върху полетата за снимка
+  document.addEventListener('dragover', (e) => {
+    const d = e.target.closest && e.target.closest('label.drop[for]');
+    if (d) e.preventDefault(), d.classList.add('over');
+  });
+  document.addEventListener('dragleave', (e) => {
+    const d = e.target.closest && e.target.closest('label.drop[for]');
+    if (d) d.classList.remove('over');
+  });
+  document.addEventListener('drop', (e) => {
+    const d = e.target.closest && e.target.closest('label.drop[for]');
+    if (!d) return;
+    e.preventDefault();
+    d.classList.remove('over');
+    const inp = document.getElementById(d.htmlFor);
+    if (!inp || !e.dataTransfer || !e.dataTransfer.files.length) return;
+    try {
+      inp.files = e.dataTransfer.files;
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (err) {}
+  });
+
 
   function setAiImage(blob, sample) {
     aiBlob = blob;
@@ -585,7 +626,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       try {
         setAiImage(await shrinkImage(f), false);
       } catch (err) {
-        M.toast('Снимката не може да се отвори');
+        M.toast(M.photoError(err), 5000);
       }
     });
     $('#aiSample').addEventListener('click', async () => {
@@ -724,6 +765,11 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
         arMarks();
         arHint('Натисни долния ЛЯВ ъгъл на стена A (където стената среща пода).');
         $('#arRecal').disabled = false;
+      };
+      img.onerror = () => {
+        img.remove();
+        if (AR.img === img) AR.img = null;
+        M.toast(M.photoError(new Error(/heic|heif/i.test(f.type + f.name) ? 'heic' : 'decode')), 5000);
       };
       img.src = URL.createObjectURL(f);
       st.insertBefore(img, st.firstChild);
