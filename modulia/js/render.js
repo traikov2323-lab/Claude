@@ -229,17 +229,17 @@ Keep the room from image 1: walls, ceiling, windows, doors, floor, perspective, 
     try {
       const body = JSON.stringify({ mode, prompt, images });
       let r = null;
-      for (let attempt = 0; attempt < 5; attempt++) {
+      for (let attempt = 0; attempt < 12; attempt++) {
         try {
           r = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
           if (r.status < 500) break;
         } catch (e) {
           r = null;
         }
-        if (attempt < 4) {
+        if (attempt < 11) {
           const st = $('#rStep');
           if (st) st.textContent = 'Сървърът се подготвя…';
-          await new Promise((ok) => setTimeout(ok, 3000 * (attempt + 1)));
+          await new Promise((ok) => setTimeout(ok, Math.min(8000, 3000 + attempt * 1500)));
         }
       }
       if (!r) throw new Error('Няма връзка със сървъра. Опитай отново.');

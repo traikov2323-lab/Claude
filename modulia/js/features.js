@@ -134,7 +134,7 @@
     if (mode === 'server') {
       const body = JSON.stringify({ task, prompt, image: await blobToB64(blob), mediaType: blob.type || 'image/jpeg' });
       let r = null;
-      for (let attempt = 0; attempt < 5; attempt++) {
+      for (let attempt = 0; attempt < 12; attempt++) {
         try {
           r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal });
           if (r.status < 500) break;
@@ -142,7 +142,7 @@
           if (signal && signal.aborted) throw { code: 'cancelled' };
           r = null;
         }
-        if (attempt < 4) await new Promise((ok) => setTimeout(ok, 3000 * (attempt + 1)));
+        if (attempt < 11) await new Promise((ok) => setTimeout(ok, Math.min(8000, 3000 + attempt * 1500)));
       }
       if (!r) throw { code: 'server' };
       if (!r.ok) throw { code: r.status === 429 ? 'rate_limited' : r.status === 503 ? 'unavailable' : 'server' };
@@ -727,10 +727,32 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
     AR.ov.hidden = false;
   }
 
-  function arHint(t) {
+  // Сцената е точно колкото снимката и се побира в екрана (вертикалните снимки от телефон не излизат извън него)
+  function arFit() {
+    const st = $('#arStage');
+    const img = AR.img;
+    if (!img || !img.naturalWidth) {
+      st.style.width = '100%';
+      st.style.height = '';
+      return;
+    }
+    const phone = st.parentElement;
+    const cs = getComputedStyle(phone);
+    const availW = Math.max(200, phone.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    const maxH = Math.max(300, window.innerHeight * (window.innerWidth < 700 ? 0.68 : 0.78));
+    const ratio = img.naturalHeight / img.naturalWidth;
+    const w = Math.min(availW, maxH / ratio);
+    st.style.width = Math.round(w) + 'px';
+    st.style.height = Math.round(w * ratio) + 'px';
+  }
+
+  let hintT = 0;
+  function arHint(t, autoHide) {
     const h = $('#arHint');
     h.textContent = t;
     h.hidden = false;
+    clearTimeout(hintT);
+    if (autoHide) hintT = setTimeout(() => (h.hidden = true), 4500);
     const e = $('#arEmpty');
     if (e) e.hidden = true;
   }
@@ -758,6 +780,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       img.alt = 'Снимка на стената';
       img.onload = () => {
         st.style.minHeight = '0';
+        arFit();
         AR.taps = [];
         AR.off = { x: 0, y: 0 };
         AR.ready = false;
@@ -795,7 +818,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
           arEnsureView();
           AR.ready = true;
           arRender();
-          arHint('Готово. Влачи, за да наместиш. Нагласи завъртането и наклона отляво.');
+          arHint('Готово. Влачи, за да наместиш. Нагласи завъртането и наклона отляво.', true);
           setTimeout(() => $$('#arStage .tap').forEach((x) => x.remove()), 1500);
         }
         return;
@@ -823,39 +846,47 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
         arRender();
       });
     new ResizeObserver(() => arRender()).observe(st);
+    new ResizeObserver(() => arFit()).observe(st.parentElement);
+    window.addEventListener('resize', arFit);
     M.on('changed', () => {
       if (S.view === 'ar') arRender();
     });
-    M.on('view', (v) => v === 'ar' && arRender());
+    M.on('view', (v) => v === 'ar' && (arFit(), arRender()));
 
     // 3D / AR модел
+    const freshGLB = () => {
+      M.view3d.setProject(S.project, S.built, { keepCamera: true });
+      return M.view3d.exportGLB();
+    };
     $('#arGlb').addEventListener('click', async () => {
-      if (!M.view3d) return;
+      if (!M.view3d) return M.toast('3D изгледът не е готов');
       try {
-        const blob = await M.view3d.exportGLB();
+        const blob = await freshGLB();
         M.saveFile(slug() + '.glb', blob, 'model/gltf-binary');
       } catch (e) {
         M.toast('Моделът не може да се експортира');
       }
     });
     $('#arLive').addEventListener('click', async () => {
-      if (!M.view3d) return;
+      if (!M.view3d) return M.toast('3D изгледът не е готов');
       const modal = document.createElement('div');
       modal.className = 'modal';
-      modal.innerHTML = `<div class="card pad stack"><div class="row" style="justify-content:space-between"><h3>3D модел за AR</h3><button class="btn sm" data-x>Затвори</button></div><div id="mvHost"><div class="empty"><span class="spinner"></span> Зареждам модела…</div></div><p class="small muted" id="mvNote" style="margin:0"></p></div>`;
+      modal.innerHTML = `<div class="card pad stack wide"><div class="row" style="justify-content:space-between"><h3>Кухнята в реален размер</h3><button class="btn sm" data-x>Затвори</button></div><div id="mvHost"><div class="empty"><span class="spinner"></span> Зареждам модела…</div></div><p class="small muted" id="mvNote" style="margin:0"></p></div>`;
       document.body.appendChild(modal);
       const close = () => modal.remove();
       modal.querySelector('[data-x]').addEventListener('click', close);
       modal.addEventListener('click', (e) => e.target === modal && close());
       try {
-        const [blob] = await Promise.all([M.view3d.exportGLB(), M.loadScript(LIB.mv, true)]);
+        const [blob] = await Promise.all([freshGLB(), M.loadScript(LIB.mv, true)]);
         await customElements.whenDefined('model-viewer');
         const url = URL.createObjectURL(blob);
         const mv = document.createElement('model-viewer');
         mv.setAttribute('src', url);
         mv.setAttribute('alt', '3D модел на кухнята');
         mv.setAttribute('ar', '');
-        mv.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
+        mv.setAttribute('ar-modes', 'webxr quick-look');
+        mv.setAttribute('ar-scale', 'fixed');
+        mv.setAttribute('style', 'width:100%;height:min(60vh,460px);background:#eef1f6;border-radius:14px');
         mv.setAttribute('ar-placement', 'floor');
         mv.setAttribute('camera-controls', '');
         mv.setAttribute('shadow-intensity', '1');
@@ -864,7 +895,20 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
         host.innerHTML = '';
         host.appendChild(mv);
         mv.addEventListener('load', () => {
-          modal.querySelector('#mvNote').textContent = mv.canActivateAR ? 'Натисни иконата за AR в долния десен ъгъл и насочи телефона към пода.' : 'Този изглед няма достъп до камерата. Отвори Модулия на собствен домейн от телефон с ARCore или ARKit, за да поставиш кухнята в стаята.';
+          const note = modal.querySelector('#mvNote');
+          if (mv.canActivateAR) {
+            note.innerHTML = 'Натисни бутона долу и насочи телефона към пода. Кухнята се появява в реален размер.';
+            const go = document.createElement('button');
+            go.className = 'btn primary lg';
+            go.innerHTML = '<svg class="ic"><use href="#i-ar"/></svg>Постави в стаята';
+            go.addEventListener('click', () => mv.activateAR());
+            note.after(go);
+          } else {
+            const mob = /Android|iPhone|iPad/i.test(navigator.userAgent);
+            note.innerHTML = mob
+              ? 'Този браузър няма достъп до AR. На iPhone отвори сайта в Safari, на Android в Chrome (с Google Play Services for AR).'
+              : `Завърти модела с мишката. За AR в стаята отвори Модулия на телефона: <span style="display:inline-block;width:110px;height:110px;background:#fff;padding:6px;border-radius:10px;vertical-align:middle;margin-left:8px">${M.qrSvg('https://modulia-bg.netlify.app/#ar')}</span>`;
+          }
         });
         mv.addEventListener('error', () => (modal.querySelector('#mvNote').textContent = 'Моделът не се зареди в този изглед. Свали .glb файла и го отвори в AR приложение.'));
       } catch (e) {
@@ -901,6 +945,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
     img.alt = 'Снимка на твоята кухня';
     img.onload = () => {
       st.style.minHeight = '0';
+      arFit();
       AR.off = { x: 0, y: 0 };
       $('#arRecal').disabled = false;
       const ok = corners && corners.left && corners.right && corners.right[0] > corners.left[0];
@@ -912,7 +957,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
         arEnsureView();
         AR.ready = true;
         arRender();
-        arHint('Новата кухня е поставена върху снимката. Ако не съвпада, маркирай ъглите отново или влачи.');
+        arHint('Новата кухня е поставена върху снимката. Ако не съвпада, маркирай ъглите отново или влачи.', true);
       } else {
         AR.taps = [];
         AR.ready = false;

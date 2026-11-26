@@ -76,16 +76,16 @@ Reply with ONLY this JSON (Bulgarian text):
   async function postRender(prompt, dataUrl, onWait) {
     const body = JSON.stringify({ mode: 'scene', prompt, images: [{ data: dataUrl.split(',')[1], mime: dataUrl.slice(5, dataUrl.indexOf(';')) }] });
     let r = null;
-    for (let a = 0; a < 6; a++) {
+    for (let a = 0; a < 12; a++) {
       try {
         r = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
         if (r.status < 500 && r.status !== 429) break;
       } catch (e) {
         r = null;
       }
-      if (a < 5) {
+      if (a < 11) {
         onWait && onWait(r && r.status === 429 ? 'Изчаквам свободен ред…' : 'Сървърът се подготвя…');
-        await new Promise((ok) => setTimeout(ok, (r && r.status === 429 ? 15000 : 3000) * (a + 1)));
+        await new Promise((ok) => setTimeout(ok, r && r.status === 429 ? 15000 : Math.min(8000, 3000 + a * 1500)));
       }
     }
     if (!r) throw new Error('Няма връзка със сървъра');
