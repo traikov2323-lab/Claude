@@ -622,6 +622,27 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   .bavar svg { height: 60px; }
   .bavar span { font-size: 11px; }
 }
+.inthumbs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.inthumb { border: 0; background: var(--fill); border-radius: 14px; padding: 6px; text-align: left; color: var(--ink); display: flex; flex-direction: column; gap: 5px; }
+.inthumb[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); }
+.inthumb .ith { aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; background: var(--fill-2); text-align: center; padding: 4px; }
+.inthumb .ith img { width: 100%; height: 100%; object-fit: cover; margin: -4px; width: calc(100% + 8px); height: calc(100% + 8px); }
+.inthumb.wait .ith { background: linear-gradient(100deg, var(--fill-2) 30%, var(--fill) 50%, var(--fill-2) 70%); background-size: 250% 100%; animation: sh 1.6s linear infinite; }
+.inthumb > span.small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px 2px; }
+#inStyles .chip { font-family: var(--f-body); font-size: 13px; }
+.inbudget { background: var(--fill); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.inbig { font-family: var(--f-display); font-size: 30px; letter-spacing: -.03em; }
+.inok { color: #1f8f3f; font-weight: 600; font-size: 14px; }
+.inover { color: #d70015; font-weight: 600; font-size: 14px; }
+.inbar { height: 8px; border-radius: 99px; background: var(--fill-2); overflow: hidden; }
+.inbar span { display: block; height: 100%; background: var(--ink); border-radius: 99px; transition: width .4s; }
+.ingh { font-size: 16px; margin: 6px 0 0; }
+.intable td.wrap { white-space: normal; min-width: 240px; }
+.intable a { color: var(--ink); text-decoration: none; }
+.intable a:hover { color: var(--accent); text-decoration: underline; }
+.intable tr.off td { opacity: .45; }
+.intable input { width: 17px; height: 17px; accent-color: var(--accent); }
+@media (max-width: 640px) { .inthumbs { gap: 6px; } .inthumb > span.small { font-size: 11px; } }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -642,6 +663,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-bath" viewBox="0 0 24 24"><path d="M3 12h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M6 12V5.5A2.5 2.5 0 0 1 8.5 3c1.2 0 2.2.8 2.4 2"/><path d="M7 19l-1 2M17 19l1 2"/></symbol>
+  <symbol id="i-sofa" viewBox="0 0 24 24"><path d="M4 11V8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3"/><path d="M2 13a2 2 0 0 1 4 0v2h12v-2a2 2 0 0 1 4 0v5H2z"/><path d="M5 18v2M19 18v2"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="3.5"/></symbol>
@@ -682,6 +704,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
     <button role="tab" data-view="builder" aria-selected="false"><svg class="ic"><use href="#i-cube"/></svg>Създай кухня</button>
     <button role="tab" data-view="photo" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
     <button role="tab" data-view="bath" aria-selected="false"><svg class="ic"><use href="#i-bath"/></svg>Баня</button>
+    <button role="tab" data-view="interior" aria-selected="false"><svg class="ic"><use href="#i-sofa"/></svg>Интериор</button>
     <button role="tab" data-view="project" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-layers"/></svg>Разширен редактор</button>
     <button role="tab" data-view="ai" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>AI от скица</button>
     <button role="tab" data-view="ar" aria-selected="false"><svg class="ic"><use href="#i-ar"/></svg>AR в стаята</button>
@@ -714,6 +737,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
           <button class="btn primary lg" data-go="builder">Създай своя кухня <svg class="ic"><use href="#i-arrow"/></svg></button>
           <button class="btn lg" data-go="photo"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
           <button class="btn lg" data-go="bath"><svg class="ic"><use href="#i-bath"/></svg>Баня</button>
+          <button class="btn lg" data-go="interior"><svg class="ic"><use href="#i-sofa"/></svg>Интериор</button>
         </div>
       </div>
       <div class="tablet anim-in">
@@ -732,6 +756,11 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       </div>
     </div>
     <div class="features">
+      <button class="card feature anim-card" data-go="interior">
+        <span class="fi"><svg class="ic lg"><use href="#i-sofa"/></svg></span>
+        <h3>Интериор от една снимка</h3><p>Снимай стаята, избери стил и бюджет. AI прави 3 фотореалистични варианта и списък с продукти от IKEA, JYSK, eMAG и други в рамките на бюджета.</p>
+        <span class="go">Преобрази стаята <svg class="ic"><use href="#i-arrow"/></svg></span>
+      </button>
       <button class="card feature anim-card" data-go="bath">
         <span class="fi"><svg class="ic lg"><use href="#i-bath"/></svg></span>
         <h3>Баня от снимка на мазилка</h3><p>Снимай банята. AI разчита размерите и изводите, подрежда душа и тоалетната, показва плочките по стени и смята м², лепило, фуга и цена.</p>
@@ -964,6 +993,41 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       <div class="stack">
         <div class="card pad" id="phResult"><div class="empty">Тук ще видиш разпознатия стил и цената на новата си кухня.</div></div>
         <div class="stage3d" id="ph3d" style="height:min(50vh,460px)"><div class="overlay-tl"><span class="glass">3D · новата ти кухня</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ИНТЕРИОР -->
+  <section class="view" id="view-interior">
+    <div class="split">
+      <div class="card pad stack">
+        <h2>Интериор</h2>
+        <p class="muted" style="margin:0">Снимай стаята. AI запазва стените, прозорците, вратите и тавана и сменя само мебелите, цветовете, осветлението и декорацията. Получаваш 3 фотореалистични варианта и списък за пазаруване в рамките на бюджета.</p>
+        <label class="drop phslot" for="inPhoto"><img id="inPhotoImg" hidden alt="Твоята стая"><span id="inPhotoTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-camera"/></svg><br><b>Снимка на стаята</b><br><span class="small muted">снимай от ъгъла, на дневна светлина</span></span></label>
+        <input type="file" id="inPhoto" accept="image/*" capture="environment" hidden>
+        <div class="field"><span class="lbl">Стая</span><div class="seg" id="inRoom"></div></div>
+        <div class="field"><span class="lbl">Стил</span><div class="chips" id="inStyles"></div></div>
+        <div class="field"><label for="inBudgetN">Бюджет за продуктите, €</label><div class="row" style="flex-wrap:nowrap"><input type="range" id="inBudgetR" min="100" max="5000" step="50" style="flex:1"><input class="inp" id="inBudgetN" type="number" inputmode="numeric" min="50" style="width:96px"></div></div>
+        <label class="switch"><span>Запази големите мебели и пода<br><span class="small muted">диван, маси, шкафове, легло · сменят се текстил, осветление и декор</span></span><input type="checkbox" id="inKeep"></label>
+        <div class="field"><label for="inNotes">Желания (по желание)</label><textarea id="inNotes" rows="2" placeholder="Например: повече място за съхранение, тъмнозелен акцент"></textarea></div>
+        <button class="btn primary lg" id="inRun"><svg class="ic"><use href="#i-sparkles"/></svg>Създай 3 варианта</button>
+        <div class="aistatus muted" id="inStatus"></div>
+      </div>
+      <div class="stack">
+        <div class="card pad stack">
+          <div id="inMain"></div>
+          <div class="inthumbs" id="inThumbs"></div>
+          <div class="row" id="inActs" hidden><button class="btn magic" id="inShopBtn"><svg class="ic"><use href="#i-tag"/></svg>Списък за пазаруване</button><button class="btn" id="inAgain"><svg class="ic"><use href="#i-sparkles"/></svg>Нов вариант</button><button class="btn" id="inSave"><svg class="ic"><use href="#i-download"/></svg>Свали снимката</button><span class="small muted" id="inShopSt"></span></div>
+        </div>
+        <div class="card pad stack" id="inShop" hidden>
+          <h3>Списък за пазаруване</h3>
+          <p class="muted" id="inSum" style="margin:0"></p>
+          <div id="inKept" class="row"></div>
+          <div class="inbudget" id="inBudget"></div>
+          <div id="inGroups" class="stack"></div>
+          <p class="small muted" style="margin:0">Продуктите и цените са предложение на AI според снимката. Линкът отваря първия резултат за продукта в сайта на магазина. Там виждаш точната цена и наличност. „Още резултати“ показва подобни продукти.</p>
+          <div class="row"><button class="btn primary" id="inFit" hidden>Вмести в бюджета</button><button class="btn" id="inCopy">Копирай списъка</button><button class="btn" id="inCsv"><svg class="ic"><use href="#i-download"/></svg>CSV</button></div>
+        </div>
       </div>
     </div>
   </section>
@@ -1305,4 +1369,5 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 <script src="js/photo.js"></script>
 <script src="js/render.js"></script>
 <script src="js/bath.js"></script>
+<script src="js/interior.js"></script>
 <script src="js/platform.js"></script>

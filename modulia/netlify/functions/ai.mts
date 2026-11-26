@@ -3,7 +3,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Config, Context } from "@netlify/functions";
 
-const TASKS = new Set(["style", "room", "sketch", "bath", "bathstyle"]);
+const TASKS = new Set(["style", "room", "sketch", "bath", "bathstyle", "shop"]);
 const MEDIA = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export default async (req: Request, context: Context) => {
@@ -28,9 +28,9 @@ export default async (req: Request, context: Context) => {
     const client = new Anthropic({ apiKey, baseURL: baseURL || undefined });
     const msg = await client.messages.create({
       model: "claude-sonnet-5-5",
-      max_tokens: 2000,
+      max_tokens: 4000,
       system:
-        "You are a kitchen and bathroom design assistant inside a Bulgarian interior configurator. You read photos and hand sketches of kitchens, bathrooms and rooms. Always reply with exactly one JSON value and nothing else. Text values meant for the user are in Bulgarian.",
+        "You are a kitchen, bathroom and interior design assistant inside a Bulgarian interior configurator. You read photos and hand sketches of kitchens, bathrooms and rooms. Always reply with exactly one JSON value and nothing else. Text values meant for the user are in Bulgarian.",
       messages: [
         {
           role: "user",
