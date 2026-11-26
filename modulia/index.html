@@ -720,6 +720,11 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 .moempty > div { padding: 22px 24px 26px; }
 .moempty h3 { font-size: 22px; letter-spacing: -.02em; margin: 0 0 6px; }
 .moafter { align-items: center; }
+.moappl { background: var(--fill); border-radius: 14px; padding: 12px 14px; }
+.moappl summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
+.moappl summary::-webkit-details-marker { display: none; }
+.moappl[open] summary { margin-bottom: 10px; }
+.moappl[open] summary > span:last-child { display: none; }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1059,12 +1064,16 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
           <div class="field"><span class="lbl">Плот</span><div class="seg" id="moTop"></div></div>
           <div class="field"><span class="lbl">Гръб</span><div class="seg" id="moSplash"></div></div>
           <div class="field"><span class="lbl">Дръжки</span><div class="seg" id="moHandle"></div></div>
-          <div class="field"><span class="lbl">Смесител и метал</span><div class="seg" id="moMetal"></div></div>
+          <div class="field"><span class="lbl">Дръжки и метал</span><div class="seg" id="moMetal"></div></div>
           <div class="field"><span class="lbl">Горна част</span><div class="seg" id="moUppers"></div></div>
         </div>
+        <details class="moappl" id="moApplBox"><summary><span><b>Мивка, печка и уреди</b><br><span class="small muted" id="moApplSum">остават както са</span></span><span class="small" style="color:var(--accent)">Смени</span></summary>
+          <p class="small muted" style="margin:0">Остават точно както са на снимката. Смени само това, което искаш да видиш ново.</p>
+          <div class="stack" style="gap:10px" id="moAppl"></div>
+        </details>
         <label class="switch"><span>Запази размерите и мястото<br><span class="small muted">реалистично за твоята стая</span></span><input type="checkbox" id="moKeep"></label>
         <label class="switch"><span>Подреди плота<br><span class="small muted">маха вещите от плота и пода</span></span><input type="checkbox" id="moTidy"></label>
-        <div class="field"><label for="moNotes">Желания (по желание)</label><textarea id="moNotes" rows="2" placeholder="Например: искам място за съдомиялна"></textarea></div>
+        <div class="field"><label for="moNotes">Желания (по желание)</label><textarea id="moNotes" rows="2" placeholder="Например: смени мивката с черна, искам място за съдомиялна"></textarea></div>
         <button class="btn primary lg" id="moRun"><svg class="ic"><use href="#i-sparkles"/></svg>Преобрази</button>
         <div class="aistatus muted" id="moStatus"></div>
       </div>

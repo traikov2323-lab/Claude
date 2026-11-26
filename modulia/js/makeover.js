@@ -69,15 +69,45 @@
     { k: 'terracotta', n: 'Глина', s: 'топъл средиземноморски', low: 'terracotta', up: 'terracotta', front: 'flat', top: 'ceramic', handle: 'none', splash: 'same', uppers: 'shelves', metal: 'brass' },
     { k: 'navy', n: 'Тъмносиньо и месинг', s: 'модерна класика', low: 'navy', up: 'navy', front: 'shaker', top: 'marble', handle: 'brass', splash: 'subway', uppers: 'keep', metal: 'brass' },
   ];
-  const QUICK = ['Горните шкафове по-светли', 'Махни дръжките', 'Добави LED под горните шкафове', 'Направи плота по-тъмен', 'Добави висока колона за хладилник', 'Повече растения и декор'];
+  // Мивка и уреди: по подразбиране остават точно както са на снимката
+  const APPL = [
+    ['sink', 'Мивка', [['keep', 'Както е'], ['steel', 'Инокс', 'a brushed stainless steel sink'], ['black', 'Черна гранитна', 'a black granite composite sink'], ['white', 'Бяла керамична', 'a white ceramic sink'], ['integrated', 'От плота', 'a sink made of the same material as the worktop']]],
+    ['tap', 'Смесител', [['keep', 'Както е'], ['new', 'Нов, в цвета на дръжките', 'NEW']]],
+    ['hob', 'Котлон или печка', [['keep', 'Както е'], ['induction', 'Индукционен котлон', 'a built-in black glass induction hob'], ['gas', 'Газов котлон', 'a built-in gas hob on black glass'], ['range', 'Свободностояща печка', 'a modern freestanding stainless steel cooker']]],
+    ['oven', 'Фурна', [['keep', 'Както е'], ['black', 'Вградена черна', 'a built-in black glass oven under the hob'], ['steel', 'Вградена инокс', 'a built-in stainless steel oven under the hob'], ['column', 'В колона', 'a built-in black oven at eye level in a tall column']]],
+    ['hood', 'Аспиратор', [['keep', 'Както е'], ['hidden', 'Скрит в шкафа', 'a hidden extractor built into the upper cabinet'], ['black', 'Черен комин', 'a slim black chimney extractor hood'], ['none', 'Без', 'no visible extractor hood']]],
+    ['fridge', 'Хладилник', [['keep', 'Както е'], ['integrated', 'Вграден в колона', 'an integrated fridge behind cabinet doors in a tall column'], ['steel', 'Свободностоящ инокс', 'a freestanding stainless steel fridge']]],
+  ];
+  const APPL_EN = { sink: 'sink', tap: 'tap', hob: 'hob or cooker', oven: 'oven', hood: 'extractor hood', fridge: 'fridge' };
+  const QUICK = ['Горните шкафове по-светли', 'Махни дръжките', 'Добави LED под горните шкафове', 'Направи плота по-тъмен', 'Добави висока колона за хладилник', 'Повече растения и декор', 'Смени мивката с черна гранитна', 'Сложи вграден индукционен котлон'];
 
   const MO = Object.assign({ src: 'preset', preset: 'walnut', keep: true, tidy: true }, M.store.get('makeover', {}) || {});
   if (!MO.spec) MO.spec = specOf(PRESETS[0]);
+  if (!MO.spec.appl) MO.spec.appl = {};
   const PH = { photos: [], insp: null, inspUrl: null, results: [], busy: false, ready: false };
   const save = () => M.store.set('makeover', { src: MO.src, preset: MO.preset, keep: MO.keep, tidy: MO.tidy, spec: MO.spec });
 
   function specOf(p) {
-    return { low: p.low, up: p.up, front: p.front, top: p.top, handle: p.handle, splash: p.splash, uppers: p.uppers, metal: p.metal };
+    // мивката и уредите не се пипат при смяна на готов проект
+    const appl = (MO.spec && MO.spec.appl) || {};
+    return { low: p.low, up: p.up, front: p.front, top: p.top, handle: p.handle, splash: p.splash, uppers: p.uppers, metal: p.metal, appl };
+  }
+  const applOf = (k) => ((MO.spec && MO.spec.appl) || {})[k] || 'keep';
+  function applEN() {
+    const keep = [],
+      change = [];
+    for (const [k, , opts] of APPL) {
+      const v = applOf(k);
+      if (v === 'keep') keep.push(APPL_EN[k]);
+      else {
+        const o = opts.find((x) => x[0] === v);
+        change.push(`- Replace the ${APPL_EN[k]} with ${o[2] === 'NEW' ? 'a new modern tap in ' + pick(METALS, MO.spec.metal)[2] : o[2]}.`);
+      }
+    }
+    let t = '';
+    if (keep.length) t += `IMPORTANT: keep the existing ${keep.join(', ')} EXACTLY as they are in the photo: the same model, shape, colour and position. Do not replace or move them. If one of them is not in the photo, do not add it.`;
+    if (change.length) t += `\nThe client asked to change these:\n${change.join('\n')}`;
+    return t;
   }
   const col = (k) => COLORS.find((c) => c.k === k) || (/^#[0-9a-f]{6}$/i.test(k) ? { k, n: k, c: k, en: 'colour ' + k } : COLORS[0]);
   const pick = (list, k) => list.find((x) => x[0] === k) || list[0];
@@ -95,7 +125,7 @@
       `- Worktop: ${pick(TOPS, s.top)[2]}.`,
       `- Backsplash: ${pick(SPLASH, s.splash)[2]}.`,
       `- Handles: ${pick(HANDLES, s.handle)[2]}.`,
-      `- Tap and metal details: ${pick(METALS, s.metal)[2]}. Integrated sink. Warm LED strip under the upper cabinets.`,
+      `- Metal details of the new furniture: ${pick(METALS, s.metal)[2]}. Warm LED strip under the upper cabinets.`,
     ].join('\n');
   }
   function basePrompt() {
@@ -105,6 +135,7 @@
         ? 'Keep the kitchen in exactly the same place, with the same length, depth and height of the cabinets, the same sink and appliance positions, so the result is realistic for this room and can be built.'
         : 'You may improve the kitchen layout within the same wall space (for example add a tall column or extend the upper cabinets), but it must stay realistic for this room.'
     }
+${applEN()}
 Keep EXACTLY: the camera position, angle, lens and framing; the walls, doors and door frames, windows, the floor, the ceiling and ceiling lights, sockets and switches, and the light in the photo.
 ${MO.tidy ? 'Remove the clutter from the worktop and the floor (bags, dishes, towels, slippers). Keep at most two tasteful accessories.' : 'Keep the small items on the worktop.'}
 ${notes ? `Client wishes (Bulgarian): ${notes}\n` : ''}Realism: it must look like a real photo taken with the same phone in the same room after the new kitchen was installed: correct perspective, real material textures and grain, natural soft shadows, slight photo noise. No CGI look, no text, no watermark.`;
@@ -113,7 +144,7 @@ ${notes ? `Client wishes (Bulgarian): ${notes}\n` : ''}Realism: it must look lik
     const first = i === 0 || !PH.results[0] || !PH.results[0].cur();
     const head =
       MO.src === 'insp'
-        ? `Image 1 is a real photo of the client's current kitchen. ${first ? 'Image 2' : 'Image 3'} is an inspiration kitchen the client likes. Redesign ONLY the kitchen furniture in image 1 so it copies the look of the inspiration: the same front style and colours, worktop, backsplash, handles, tap and lighting.`
+        ? `Image 1 is a real photo of the client's current kitchen. ${first ? 'Image 2' : 'Image 3'} is an inspiration kitchen the client likes. Redesign ONLY the kitchen furniture in image 1 so it copies the look of the inspiration: the same front style and colours, worktop, backsplash, handles and lighting.`
         : `Image 1 is a real photo of the client's current kitchen. Redesign ONLY the kitchen furniture as a professional kitchen designer and show the same room after installation.\nNew kitchen design:\n${designEN()}`;
     const same = first ? '' : '\nImage 2 shows the SAME kitchen already redesigned, photographed from another angle. The new kitchen must match image 2 exactly: same colours, materials, handles, worktop and backsplash.';
     return `${head}${same}\n${basePrompt()}`;
@@ -351,6 +382,10 @@ Keep everything else in image 1 identical: the same framing, room, cabinets layo
     seg('#moSplash', SPLASH, MO.spec.splash);
     seg('#moUppers', UPPERS, MO.spec.uppers);
     seg('#moMetal', METALS, MO.spec.metal);
+    $('#moAppl').innerHTML = APPL.map(([k, n, opts]) => `<div class="field"><span class="lbl">${n}</span><div class="seg" data-appl="${k}">${opts.map(([v, t]) => `<button data-k="${v}" aria-pressed="${applOf(k) === v}">${t}</button>`).join('')}</div></div>`).join('');
+    const changed = APPL.filter(([k]) => applOf(k) !== 'keep').length;
+    $('#moApplSum').textContent = changed ? `сменяш ${changed}` : 'остават както са';
+    if (changed) $('#moApplBox').open = true;
     $('#moKeep').checked = MO.keep;
     $('#moTidy').checked = MO.tidy;
   }
@@ -426,6 +461,12 @@ Keep everything else in image 1 identical: the same framing, room, cabinets layo
       }
       const segMap = { moFront: 'front', moTop: 'top', moHandle: 'handle', moSplash: 'splash', moUppers: 'uppers', moMetal: 'metal' };
       const pid = b.parentElement && b.parentElement.id;
+      const ap = b.closest('[data-appl]');
+      if (ap) {
+        MO.spec.appl = Object.assign({}, MO.spec.appl, { [ap.dataset.appl]: b.dataset.k });
+        save();
+        return renderOpts();
+      }
       if (segMap[pid]) {
         MO.spec[segMap[pid]] = b.dataset.k;
         MO.preset = null;
