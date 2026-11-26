@@ -1,4 +1,4 @@
-/* Модулия — фотореалистичен рендер с AI.
+/* Модулия: фотореалистичен рендер с AI.
    „scene“: 3D изгледът става на снимка като от интериорен фотограф (същата подредба и материали).
    „room“: новата кухня се вписва фотореалистично в снимката на клиента. */
 (function () {
@@ -217,7 +217,7 @@ Keep the room from image 1: walls, ceiling, windows, doors, floor, perspective, 
     const steps = ['Подготвям изгледа…', 'AI нанася материалите…', 'Добавям светлина и сенки…', 'Доизпипвам детайлите…'];
     open(`<div class="row"><h2 style="font-size:24px">${esc(o.title)}</h2><button class="xbtn" data-rclose aria-label="Затвори">✕</button></div>
       <div class="rwait"><img src="${before}" alt=""><div class="rscan"></div><div class="rmsg"><span class="spinner"></span> <span id="rStep">${steps[0]}</span> <span class="mono" id="rSec">0 s</span></div></div>
-      <p class="small muted" style="margin:0">Обикновено отнема 10–40 секунди. Подредбата и размерите остават същите.</p>`);
+      <p class="small muted" style="margin:0">Обикновено отнема 10 до 40 секунди. Подредбата и размерите остават същите.</p>`);
     let sec = 0;
     const timer = setInterval(() => {
       sec++;

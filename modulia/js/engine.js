@@ -1,4 +1,4 @@
-/* Модулия — двигател: автоматично подреждане, детайли, кантиране, разкрой, цени, проверки.
+/* Модулия: двигател: автоматично подреждане, детайли, кантиране, разкрой, цени, проверки.
    Всички размери са в милиметри. Координати на стена: x от левия край на стената (гледана отпред),
    y нагоре от пода, z навън от стената. При Г-образна кухня ъгълът е в десния край на стена A,
    а стена B започва от ъгъла. */
@@ -256,7 +256,7 @@
           const free = gapsOf(b, occ[wall].wall);
           for (const [a0, a1] of free) add({ wall, row: 'wall', type: 'gap', x: a0, w: a1 - a0 });
         }
-        // над колоните няма горни шкафове — пазим мястото, за да работи ръчното подреждане
+        // над колоните няма горни шкафове · пазим мястото, за да работи ръчното подреждане
         for (const t of mods.filter((m) => m.wall === wall && M.isTall(m.type))) add({ wall, row: 'wall', type: 'gap', x: t.x, w: t.w });
         for (const [g0, g1] of gapsOf(range[wall].wall, occ[wall].wall)) {
           const g = g1 - g0;
@@ -776,7 +776,7 @@
         const ft = M.frontType(zm.frontType);
         const sf = M.surface(zm.surface);
         key = 'mdf:' + zm.frontType + ':' + zm.frontColor + ':' + sf.key;
-        g(key, `${ft.name}${sf.key !== 'flat' ? ', ' + sf.name.toLowerCase() : ''} — ${M.paint(zm.frontColor).name}`, 'mdf', false, { frontType: zm.frontType, surface: sf.key });
+        g(key, `${ft.name}${sf.key !== 'flat' ? ', ' + sf.name.toLowerCase() : ''} · ${M.paint(zm.frontColor).name}`, 'mdf', false, { frontType: zm.frontType, surface: sf.key });
       } else {
         const bk = p.mat === 'front' ? M.zone(mats, p.zone).frontDecor : mats.carcass;
         const b = M.board(bk);
@@ -850,7 +850,7 @@
       if (g.kind === 'board') {
         const b = M.board(g.key.split(':')[1]);
         c += L('Материали', g.label, g.nest.sheets.length, 'лист', b.price);
-        c += L('Услуги', 'Разкрой — ' + b.brand + ' ' + b.name, g.nest.sheets.length, 'лист', pv('cutSheet'));
+        c += L('Услуги', 'Разкрой · ' + b.brand + ' ' + b.name, g.nest.sheets.length, 'лист', pv('cutSheet'));
       } else if (g.kind === 'hdf') {
         c += L('Материали', g.label, g.nest.sheets.length, 'лист', M.CATALOG.hdf.price);
         c += L('Услуги', 'Разкрой HDF', g.nest.sheets.length, 'лист', pv('cutHdf'));

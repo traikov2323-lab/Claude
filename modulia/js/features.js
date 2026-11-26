@@ -1,4 +1,4 @@
-/* Модулия — AI от скица, преглед в стаята, сглобяване с QR, експорти, запитвания. */
+/* Модулия: AI от скица, преглед в стаята, сглобяване с QR, експорти, запитвания. */
 (function () {
   const M = window.M;
   const { $, $$, esc } = M;
@@ -267,12 +267,12 @@
     const P = S.project;
     let html = `<div class="paper" style="box-shadow:none"><div class="ph"><div><h1>Разкрой</h1><div class="meta">Проект ${P.id} · ${new Date().toLocaleDateString('bg-BG')}</div></div><div class="meta" style="text-align:right">${esc(S.profile.name)}<br>Плоча 2800×2070, диск 4 мм, подрязване 10 мм</div></div>`;
     for (const g of Object.values(S.groups).filter((x) => x.nest)) {
-      html += `<h3>${esc(g.label)} — ${g.nest.sheets.length} лист(а), ${Math.round(g.nest.util * 100)}% използване</h3>`;
+      html += `<h3>${esc(g.label)} · ${g.nest.sheets.length} лист(а), ${Math.round(g.nest.util * 100)}% използване</h3>`;
       g.nest.sheets.forEach((s, i) => (html += `<div class="keep" style="margin:6px 0 12px"><div class="meta">Лист ${i + 1} · ${s.placed.length} детайла · ${Math.round(s.util * 100)}%</div>${sheetSvgPrint(s)}</div>`));
     }
     html += `<h3>Разкройна листа</h3><table><thead><tr><th>№</th><th>Детайл</th><th>Материал</th><th class="r">Д</th><th class="r">Ш</th><th class="r">Бр</th><th>Шарка</th><th>Кант Д1/Д2/Ш1/Ш2</th></tr></thead><tbody>`;
     cutRowsAggregated().forEach((r, i) => {
-      const k = [r.e.L1, r.e.L2, r.e.W1, r.e.W2].map((v) => (v ? String(v).replace('.', ',') : '–')).join(' / ');
+      const k = [r.e.L1, r.e.L2, r.e.W1, r.e.W2].map((v) => (v ? String(v).replace('.', ',') : '·')).join(' / ');
       html += `<tr><td>${i + 1}</td><td>${esc(r.name)}<br><span style="color:#777;font-size:10px">${r.pids.join(' ')}</span></td><td style="font-size:10.5px">${esc(r.mat)}</td><td class="r">${r.L}</td><td class="r">${r.W}</td><td class="r">${r.qty}</td><td>${r.grain}</td><td>${k}</td></tr>`;
     });
     html += `</tbody></table></div>`;
@@ -585,7 +585,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
 
   async function showAiResult(res) {
     const room = cleanRoom(res);
-    const feats = room.features.map((f) => `${M.FEAT[f.type].label} (${f.wall}, ${f.type === 'window' ? f.x + '–' + (f.x + f.w) : f.x} мм)`).join(' · ');
+    const feats = room.features.map((f) => `${M.FEAT[f.type].label} (${f.wall}, ${f.type === 'window' ? f.x + '·' + (f.x + f.w) : f.x} мм)`).join(' · ');
     $('#aiRoom').innerHTML = `<div class="row" style="justify-content:space-between"><h3>Разчетено от изображението</h3><span class="pill ${res.confidence === 'high' ? 'ok' : res.confidence === 'low' ? 'warn' : ''}">сигурност: ${esc(res.confidence === 'high' ? 'висока' : res.confidence === 'low' ? 'ниска' : 'средна')}</span></div>
       <p style="margin:6px 0"><b>${room.shape === 'L' ? 'Г-образна' : 'Права'}</b> · A ${room.wallA} мм${room.shape === 'L' ? ' · B ' + room.wallB + ' мм' : ''} · височина ${room.height} мм</p>
       <p class="small muted" style="margin:0">${esc(feats || 'Няма отбелязани точки')}</p>
@@ -641,7 +641,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
       }
       const btn = $('#aiRun');
       btn.disabled = true;
-      st.innerHTML = '<span class="spinner"></span> AI разчита изображението. Обикновено отнема 20–60 секунди.';
+      st.innerHTML = '<span class="spinner"></span> AI разчита изображението. Обикновено отнема 20 до 60 секунди.';
       try {
         if (!(await M.aiMode())) {
           if (aiIsSample) {
@@ -1049,7 +1049,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
     const pp = ASM.part !== null ? res.parts[ASM.part] : null;
     if (pp) {
       const used = res.steps.map((s, i) => (s.p.includes(ASM.part) ? i + 1 : 0)).filter(Boolean);
-      $('#asmPart').innerHTML = `<div class="partcard"><div class="qr">${M.qrSvg(qrText(pp.pid))}</div><div class="stack" style="gap:4px"><b class="mono" style="font-size:16px">${pp.pid} · ${esc(mod.code)}</b><span>${esc(pp.name)}</span><span class="small muted">${pp.mat === 'hdf' ? 'HDF 3 мм' : pp.mat === 'front' ? 'Фронт' : 'Корпус ПДЧ 18 мм'} · стъпки ${used.join(', ') || '—'}</span>${edgeSvg(pp)}</div></div><button class="btn sm" id="asmBack" style="margin-top:10px">Обратно към стъпките</button>`;
+      $('#asmPart').innerHTML = `<div class="partcard"><div class="qr">${M.qrSvg(qrText(pp.pid))}</div><div class="stack" style="gap:4px"><b class="mono" style="font-size:16px">${pp.pid} · ${esc(mod.code)}</b><span>${esc(pp.name)}</span><span class="small muted">${pp.mat === 'hdf' ? 'HDF 3 мм' : pp.mat === 'front' ? 'Фронт' : 'Корпус ПДЧ 18 мм'} · стъпки ${used.join(', ') || '…'}</span>${edgeSvg(pp)}</div></div><button class="btn sm" id="asmBack" style="margin-top:10px">Обратно към стъпките</button>`;
       $('#asmBack').onclick = () => {
         ASM.part = null;
         asmRender({ keepCamera: true });
@@ -1127,7 +1127,7 @@ Reply with ONLY this JSON (names, descriptions and notes in Bulgarian):
     const list = S.built.parts.filter((x) => x.moduleId === p.moduleId);
     ASM.part = list.indexOf(p);
     asmRender();
-    M.toast(`${pid}: ${p.name} — ${p.module}`);
+    M.toast(`${pid}: ${p.name} · ${p.module}`);
   }
 
   M.on('ready', () => {

@@ -1,4 +1,4 @@
-/* Модулия — „Кухня от снимка“: AI разпознава стила от снимка на харесвана кухня,
+/* Модулия: „Кухня от снимка“: AI разпознава стила от снимка на харесвана кухня,
    разчита стаята на клиента от неговата снимка, нанася новата кухня върху нея и позволява корекции на живо. */
 (function () {
   const M = window.M;
@@ -151,7 +151,7 @@ Reply with ONLY this JSON:
     const btn = $('#phRun');
     btn.disabled = true;
     PH.ctl = new AbortController();
-    st.innerHTML = '<span class="spinner"></span> AI разглежда снимките. Обикновено отнема 15–40 секунди.';
+    st.innerHTML = '<span class="spinner"></span> AI разглежда снимките. Обикновено отнема 15 до 40 секунди.';
     try {
       const notes = $('#phNotes').value.trim();
       const [sty, rm] = await Promise.all([PH.insp ? M.aiJSON('style', stylePrompt(notes), PH.insp, PH.ctl.signal) : null, PH.room ? M.aiJSON('room', roomPrompt(notes), PH.room, PH.ctl.signal) : null]);

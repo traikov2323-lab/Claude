@@ -1,4 +1,4 @@
-/* Модулия — Баня.
+/* Модулия: Баня.
    Снимка на банята (на мазилка) → AI разчита размери, врата, прозорец и изводи →
    умно подреждане на душ, вана, тоалетна, мивка → схеми на плочките по стени, 3D →
    количествена сметка: м², кашони, лепило, фуга, хидроизолация, структури, смесители, душове, мивки → магазини. */
@@ -334,7 +334,7 @@
       else ok.push(`Тоалетната е на ${M.fmt(d / 100, 1)} м от щранга, наклон 2% = ${Math.max(1, Math.round(d * 0.02))} см.`);
     }
     const sh = fx.find((f) => f.type === 'shower');
-    if (sh) ok.push('Подът в душа е с наклон 1,5–2% към линейния сифон. Нужни са поне 7 см от бетона до готовия под.');
+    if (sh) ok.push('Подът в душа е с наклон 1,5 до 2% към линейния сифон. Нужни са поне 7 см от бетона до готовия под.');
     const sk = fx.find((f) => f.type === 'sink');
     if (sk && B.win && B.win.wall === sk.wall && B.win.x < sk.u + sk.w && sk.u < B.win.x + B.win.w) msgs.push('Мивката е под прозореца и няма място за огледало.');
     if (sh && B.win && touches(foot(sh), B.win.wall)) {
@@ -1557,7 +1557,7 @@ Conventions:
 - The camera looks at the BACK wall "N". The wall on the LEFT of the photo is "W", on the RIGHT is "E". "S" is the wall behind the camera (usually where the door is).
 - Positions along a wall are in cm from that wall's left end when standing inside the room and facing that wall: N from its left (W) corner, E from its N corner, S from its E corner, W from its S corner (nearest the camera).
 - "length" is the N/S wall length, "width" is the E/W wall length, "height" floor to ceiling.
-- Use references: door 80 × 205 cm, brick 25 × 6.5 cm, concealed toilet frame 50 cm wide, toilet waste pipe Ø110, sink outlet about 55 cm high, standard ceiling 255–270 cm, typical bathroom 150–300 cm.
+- Use references: door 80 × 205 cm, brick 25 × 6.5 cm, concealed toilet frame 50 cm wide, toilet waste pipe Ø110, sink outlet about 55 cm high, standard ceiling 255 to 270 cm, typical bathroom 150 to 300 cm.
 - pipes: visible or clearly implied outlets: "wc" (toilet waste or frame), "water" (water outlets in the wall), "drain" (floor drain or Ø50 waste), "stack" (vertical sewer riser).
 - If the door is not visible, assume wall "S", x = 20.
 

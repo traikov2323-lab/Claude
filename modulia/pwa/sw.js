@@ -1,6 +1,6 @@
 /* Модулия — service worker: приложението се отваря и без интернет. */
 const VERSION = 'modulia-__BUILD__';
-const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/js/catalog.js', '/js/engine.js', '/js/view3d.js', '/js/app.js', '/js/features.js', '/js/builder.js', '/js/photo.js', '/js/render.js', '/js/bath.js', '/js/interior.js', '/js/platform.js'];
+const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/js/catalog.js', '/js/engine.js', '/js/view3d.js', '/js/app.js', '/js/features.js', '/js/builder.js', '/js/photo.js', '/js/render.js', '/js/bath.js', '/js/interior.js', '/js/makeover.js', '/js/platform.js'];
 const CDN = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'unpkg.com'];
 
 self.addEventListener('install', (e) => {

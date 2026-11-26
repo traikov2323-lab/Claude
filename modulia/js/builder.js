@@ -1,4 +1,4 @@
-/* Модулия — „Създай кухня“: опростен конструктор в 5 стъпки.
+/* Модулия: „Създай кухня“: опростен конструктор в 5 стъпки.
    Готови кухни → размери → шкафове с влачене → цветове → готово. */
 (function () {
   const M = window.M;
@@ -251,12 +251,14 @@
     $('#bMain').innerHTML = `<div class="stack"><div><h2>С какво започваме?</h2><p class="muted" style="margin:6px 0 0">Избери готова кухня и я промени, или започни от празна стена.</p></div>
       <div class="tgrid" id="bTpl">
         <button class="card tcard zero" data-t="zero"><span class="tz"><svg class="ic lg"><use href="#i-room"/></svg></span><b>Започни от нулата</b><span class="muted small">Въведи размерите си и подреди шкафовете сам</span></button>
-        <button class="card tcard zero photo" data-t="photo"><span class="tz"><svg class="ic lg"><use href="#i-sparkles"/></svg></span><b>Кухня от снимка</b><span class="muted small">Качи снимка на кухня, която харесваш, и виж я в своята стая</span></button>
+        <button class="card tcard zero photo" data-t="photo"><span class="tz"><svg class="ic lg"><use href="#i-sparkles"/></svg></span><b>Стил от снимка</b><span class="muted small">Качи снимка на кухня, която харесваш, и я направи по мярка</span></button>
+        <button class="card tcard zero photo" data-t="sketch"><span class="tz"><svg class="ic lg"><use href="#i-file"/></svg></span><b>От скица</b><span class="muted small">Снимай скица с размерите и AI подрежда кухнята</span></button>
         ${TEMPLATES.map((t, i) => `<button class="card tcard" data-t="${i}"><span class="timg">${B.thumbs && B.thumbs[i] ? `<img src="${B.thumbs[i].img}" alt="">` : '<span class="shimmer" style="display:block;height:100%"></span>'}</span><span class="tmeta"><b>${esc(t.name)}</b><span class="muted small">${esc(t.sub)}</span></span>${B.thumbs && B.thumbs[i] ? `<span class="tprice">от ${M.eur(B.thumbs[i].price)}</span>` : ''}</button>`).join('')}
       </div></div>`;
     $$('#bTpl [data-t]').forEach((b) =>
       b.addEventListener('click', () => {
         if (b.dataset.t === 'photo') return M.setView('photo');
+        if (b.dataset.t === 'sketch') return M.setView('ai');
         if (b.dataset.t === 'zero') {
           const p = M.defaultProject();
           p.room.features = [];
@@ -617,7 +619,7 @@
     const swaps = ITEMS.filter((i) => (i.any || rowOf(i.type) === m.row) && i.type !== m.type);
     host.innerHTML = `<div class="selbar"><div class="row" style="gap:10px"><b>${esc(it.name)}</b><span class="pill">${m.code || ''}</span></div>
       <div class="row"><span class="lbl">Ширина</span><div class="wchips">${widths.map((w) => `<button data-w="${w}" aria-pressed="${w === m.w}">${w / 10}</button>`).join('')}</div><span class="small muted">см</span></div>
-      <div class="row"><span class="lbl">Смени на</span><select class="inp" id="bSwap" style="width:auto"><option value="">—</option>${swaps.map((i) => `<option value="${i.type}">${esc(i.name)}</option>`).join('')}</select>
+      <div class="row"><span class="lbl">Смени на</span><select class="inp" id="bSwap" style="width:auto"><option value="">…</option>${swaps.map((i) => `<option value="${i.type}">${esc(i.name)}</option>`).join('')}</select>
       <button class="btn sm" id="bLeft" aria-label="Наляво">←</button><button class="btn sm" id="bRight" aria-label="Надясно">→</button>
       <button class="btn sm" id="bDel" style="color:var(--bad)">Премахни</button></div></div>`;
     $$('.wchips button', host).forEach((b) =>
@@ -1035,7 +1037,7 @@
         <li><span>Фронтове</span><b>${esc(M.frontsSummary(mt))}</b></li>
         <li><span>Плот</span><b>${esc(M.worktop(mt.worktop).name.replace('Ламиниран плот 38 мм, ', ''))}</b></li>
         <li><span>Дръжки</span><b>${esc(M.handle(mt.handle).name)}</b></li>
-        <li><span>Монтаж</span><b>~ ${S.hours || '—'} часа</b></li>
+        <li><span>Монтаж</span><b>~ ${S.hours || '…'} часа</b></li>
       </ul></div>
       ${warns.length ? `<div class="checks">${warns.map((c) => `<div class="chk"><i>!</i><span>${esc(c.t)}</span></div>`).join('')}</div>` : ''}
       <div class="row">

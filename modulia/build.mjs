@@ -45,6 +45,7 @@ const build = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 12);
 writeFileSync(join(dist, 'index.html'), html.replace(/src="js\/([a-z0-9]+)\.js"/g, `src="js/$1.js?v=${build}"`));
 cpSync(join(root, 'js'), join(dist, 'js'), { recursive: true });
 cpSync(join(root, 'pwa', 'icons'), join(dist, 'icons'), { recursive: true });
+cpSync(join(root, 'pwa', 'img'), join(dist, 'img'), { recursive: true });
 cpSync(join(root, 'pwa', 'manifest.webmanifest'), join(dist, 'manifest.webmanifest'));
 writeFileSync(join(dist, 'sw.js'), readFileSync(join(root, 'pwa', 'sw.js'), 'utf8').replace('__BUILD__', build).replace(/'\/js\/([a-z0-9]+)\.js'/g, `'/js/$1.js?v=${build}'`));
 writeFileSync(

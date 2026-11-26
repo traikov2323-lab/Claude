@@ -1,9 +1,9 @@
 <title>Модулия</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Модулия — онлайн конфигуратор на кухни: 3D в реално време, автоматичен разкрой, оферта, AI от скица, AR и сглобяване с QR етикети.">
+<meta name="description" content="Модулия: интериор и кухни по мярка с AI. Преобрази кухнята от снимка, проектирай в 3D, виж банята и стаята си и получи цена и оферта.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* Дизайн в стила на Apple: SF Pro (Inter извън Apple), светло сиво платно, бели карти, син акцент #0071e3,
    хапчета за бутони, iOS превключватели. Светла и тъмна тема според системата. */
@@ -33,7 +33,7 @@
   --shadow-lg: 0 20px 60px rgba(0, 0, 0, .12);
   --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
   --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
-  --f-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  --f-mono: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
   --r: 18px;
 }
 @media (prefers-color-scheme: dark) {
@@ -52,7 +52,7 @@
 }
 * { box-sizing: border-box; }
 html, body { background: var(--bg); color: var(--ink); }
-body { font-family: var(--f-body); font-size: 15px; line-height: 1.47; letter-spacing: -.01em; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--f-body); font-size: 16px; line-height: 1.5; letter-spacing: -.011em; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-feature-settings: "kern"; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--nav); }
 button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
 button { cursor: pointer; }
@@ -434,7 +434,10 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   .screwbadge { width: 76px; height: 76px; }
   .phone { border-radius: 40px; }
   .arstage { border-radius: 30px; }
-  .top-row .btn.dl-btn span { display: none; }
+  .top-row .btn.dl-btn span, #btnLogin span { display: none; }
+  .top-row { flex-wrap: nowrap; gap: 8px; }
+  .top-row .seg button { padding: 5px 10px; }
+  .brand b { font-size: 18px; }
 }
 /* Конструктор „Създай кухня“ */
 .bsteps { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -643,6 +646,80 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 .intable tr.off td { opacity: .45; }
 .intable input { width: 17px; height: 17px; accent-color: var(--accent); }
 @media (max-width: 640px) { .inthumbs { gap: 6px; } .inthumb > span.small { font-size: 11px; } }
+/* Начало: снимка за посрещане */
+.hero2 { position: relative; border-radius: 28px; overflow: hidden; min-height: min(78vh, 720px); display: flex; align-items: flex-end; margin-top: 4px; box-shadow: var(--shadow-lg); }
+.hero2-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: heroZoom 18s ease-out both; }
+@keyframes heroZoom { from { transform: scale(1.08); } to { transform: scale(1); } }
+.hero2-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(18,16,14,.62) 100%), linear-gradient(90deg, rgba(18,16,14,.35), rgba(0,0,0,0) 60%); }
+.hero2-text { position: relative; padding: clamp(24px, 5vw, 64px); color: #fff; max-width: 980px; }
+.hero2-text h1 { font-family: var(--f-display); font-size: clamp(38px, 6.4vw, 76px); line-height: 1.02; letter-spacing: -.035em; font-weight: 700; color: #fff; margin: 14px 0 0; }
+.hero2-text p { font-size: clamp(17px, 2vw, 21px); line-height: 1.4; color: rgba(255,255,255,.9); margin: 16px 0 24px; max-width: 40ch; }
+.hero2-pill { display: inline-block; background: rgba(255,255,255,.18); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 1px solid rgba(255,255,255,.28); color: #fff; padding: 6px 14px; border-radius: 980px; font-size: 14px; font-weight: 500; }
+.hero2-btn { background: rgba(255,255,255,.92); color: #1d1d1f; }
+.hero2-btn:hover { background: #fff; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); grid-auto-rows: 230px; gap: 16px; }
+.tile { position: relative; border: 0; padding: 0; border-radius: 22px; overflow: hidden; cursor: pointer; text-align: left; color: #fff; background: #222; box-shadow: var(--shadow); }
+.tile.big { grid-column: span 2; grid-row: span 2; }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2,.8,.2,1); }
+.tile:hover img { transform: scale(1.05); }
+.tile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.6)); }
+.tile .tl { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px; z-index: 1; display: flex; flex-direction: column; gap: 3px; }
+.tile .tl b { font-family: var(--f-display); font-size: 21px; letter-spacing: -.02em; }
+.tile.big .tl b { font-size: 30px; }
+.tile .tl span { font-size: 14.5px; color: rgba(255,255,255,.88); }
+.how { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.how .card { padding: 26px; }
+.how .hn { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--ink); color: var(--bg); font-weight: 700; margin-bottom: 12px; }
+.how h3 { font-size: 21px; letter-spacing: -.02em; margin: 0 0 6px; }
+.how p { color: var(--muted); margin: 0; }
+.trends { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+.trends button { border: 0; padding: 0; background: none; text-align: left; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+.trends img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 16px; box-shadow: var(--shadow); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+.trends button:hover img { transform: translateY(-3px); }
+.trends b { font-size: 15px; font-weight: 600; }
+.tabsep { width: 1px; height: 18px; background: var(--line-2); align-self: center; margin: 0 4px; flex: none; }
+@media (max-width: 1000px) { .tiles { grid-template-columns: repeat(2, minmax(0,1fr)); } .trends { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 640px) { .hero2 { min-height: 76vh; border-radius: 22px; } .tiles { grid-auto-rows: 170px; gap: 10px; } .tile.big { grid-row: span 1; } .tile .tl b { font-size: 17px; } .tile.big .tl b { font-size: 22px; } .tile .tl span { font-size: 13px; } .how { grid-template-columns: minmax(0,1fr); } }
+/* Преобрази */
+.moh { font-size: 15px; margin: 6px 0 -4px; }
+.mophotos { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.mothumb { position: relative; aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; background: var(--fill); }
+.mothumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mothumb > span { position: absolute; left: 8px; bottom: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 600; border-radius: 99px; padding: 1px 8px; }
+.mothumb .mox { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; cursor: pointer; }
+.mothumb.add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; border: 1.5px dashed var(--line-2); cursor: pointer; padding: 8px; color: var(--ink); }
+.mothumb.add .ic { stroke: var(--accent); }
+.mothumb.add > span { position: static; background: none; color: var(--muted); padding: 0; }
+.mopresets { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.mopre { border: 0; padding: 0; background: var(--fill); border-radius: 14px; overflow: hidden; text-align: left; color: var(--ink); display: flex; flex-direction: column; cursor: pointer; }
+.mopre img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.mopre > span { padding: 7px 10px 9px; display: flex; flex-direction: column; font-size: 13.5px; line-height: 1.25; }
+.mopre[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--accent); }
+.mosw { display: flex; flex-wrap: wrap; gap: 6px; }
+.msw { display: inline-flex; align-items: center; gap: 6px; border: 0; background: var(--fill-2); border-radius: 999px; padding: 4px 11px 4px 4px; font-size: 13px; color: var(--ink); cursor: pointer; }
+.msw span { width: 20px; height: 20px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); }
+.msw[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); }
+.msw.custom { position: relative; }
+.msw.custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.msw.custom span { background: conic-gradient(#e66, #ec5, #6c6, #5ae, #a6e, #e66); }
+#moResults { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; align-items: start; }
+#moResults > .moempty, #moResults > .mores.wide { grid-column: 1 / -1; }
+.mores .compare img, .mobefore img { width: 100%; display: block; }
+.mores .moacts .row { flex-wrap: wrap; }
+.mores .moacts .inp { flex: 1; min-width: 160px; }
+.mobefore { position: relative; border-radius: 14px; overflow: hidden; }
+.mobefore .rmsg { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: rgba(29,29,31,.85); color: #fff; border-radius: 980px; padding: 8px 14px; font-size: 13.5px; }
+.movers { display: flex; gap: 6px; overflow-x: auto; }
+.movers button { border: 0; padding: 0; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; flex: none; cursor: pointer; opacity: .65; }
+.movers button[aria-pressed="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--accent); }
+.movers img { width: 100%; height: 100%; object-fit: cover; }
+.moacts { display: flex; flex-direction: column; gap: 10px; }
+.moacts .chip { font-family: var(--f-body); font-size: 13px; font-weight: 500; }
+.moempty { display: grid; grid-template-columns: minmax(0,1fr); border-radius: 22px; overflow: hidden; background: var(--panel); box-shadow: var(--shadow); }
+.moempty img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.moempty > div { padding: 22px 24px 26px; }
+.moempty h3 { font-size: 22px; letter-spacing: -.02em; margin: 0 0 6px; }
+.moafter { align-items: center; }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -686,116 +763,77 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
   <div class="wrap top-row">
     <button class="brand" data-go="home" aria-label="Начало">
       <svg class="logo" viewBox="0 0 34 34" aria-hidden="true"><defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f8cff"/><stop offset="1" stop-color="#0060df"/></linearGradient></defs><rect x="1" y="1" width="32" height="32" rx="8" fill="url(#lg1)"/><path d="M8 25V14l9-6 9 6v11" stroke="#fff" stroke-width="2.4" fill="none" stroke-linejoin="round"/><rect x="12" y="17" width="4.5" height="8" rx="1" fill="#fff"/><rect x="18.5" y="17" width="4.5" height="4" rx="1" fill="#ffb547"/></svg>
-      <span><b>Модулия</b><small>Кухни по мярка</small></span>
+      <span><b>Модулия</b><small>Интериор и кухни</small></span>
     </button>
     <div class="seg" role="group" aria-label="Режим">
       <button id="modeClient" data-mode="client" aria-pressed="true">Клиент</button>
       <button id="modePro" data-mode="pro" aria-pressed="false">Цех</button>
     </div>
     <div class="pricechip" title="Ориентировъчна цена с ДДС">
-      <span>Цена с ДДС</span><b id="priceTop">—</b>
+      <span>Цена с ДДС</span><b id="priceTop">…</b>
     </div>
     <button class="btn sm dl-btn not-installed" data-dl aria-label="Изтегли приложението"><svg class="ic"><use href="#i-download"/></svg><span>Изтегли</span></button>
-    <button class="btn sm primary" id="btnLogin"><svg class="ic"><use href="#i-user"/></svg>Вход</button>
+    <button class="btn sm primary" id="btnLogin" aria-label="Вход"><svg class="ic"><use href="#i-user"/></svg><span>Вход</span></button>
     <button class="avatar" id="btnAvatar" hidden aria-label="Профил" aria-haspopup="menu"></button>
   </div>
   <nav class="wrap tabs" id="tabs" role="tablist" aria-label="Раздели">
     <button role="tab" data-view="home" aria-selected="true"><svg class="ic"><use href="#i-home"/></svg>Начало</button>
-    <button role="tab" data-view="builder" aria-selected="false"><svg class="ic"><use href="#i-cube"/></svg>Създай кухня</button>
-    <button role="tab" data-view="photo" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
-    <button role="tab" data-view="bath" aria-selected="false"><svg class="ic"><use href="#i-bath"/></svg>Баня</button>
+    <button role="tab" data-view="makeover" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>Преобрази</button>
+    <button role="tab" data-view="builder" aria-selected="false"><svg class="ic"><use href="#i-cube"/></svg>Кухня 3D</button>
     <button role="tab" data-view="interior" aria-selected="false"><svg class="ic"><use href="#i-sofa"/></svg>Интериор</button>
-    <button role="tab" data-view="project" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-layers"/></svg>Разширен редактор</button>
-    <button role="tab" data-view="ai" aria-selected="false"><svg class="ic"><use href="#i-sparkles"/></svg>AI от скица</button>
-    <button role="tab" data-view="ar" aria-selected="false"><svg class="ic"><use href="#i-ar"/></svg>AR в стаята</button>
+    <button role="tab" data-view="bath" aria-selected="false"><svg class="ic"><use href="#i-bath"/></svg>Баня</button>
+    <button role="tab" data-view="ar" aria-selected="false"><svg class="ic"><use href="#i-ar"/></svg>AR</button>
     <button role="tab" data-view="request" aria-selected="false" class="client-only"><svg class="ic"><use href="#i-file"/></svg>Заявка</button>
+    <span class="tabsep pro-only" aria-hidden="true"></span>
+    <button role="tab" data-view="project" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-layers"/></svg>Редактор</button>
     <button role="tab" data-view="cut" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-cut"/></svg>Разкрой</button>
     <button role="tab" data-view="offer" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-file"/></svg>Оферта</button>
-    <button role="tab" data-view="assembly" aria-selected="false"><svg class="ic"><use href="#i-qr"/></svg>Сглобяване</button>
     <button role="tab" data-view="inbox" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-inbox"/></svg>Заявки</button>
     <button role="tab" data-view="prices" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-tag"/></svg>Цени</button>
+    <button role="tab" data-view="assembly" aria-selected="false" class="pro-only"><svg class="ic"><use href="#i-qr"/></svg>Сглобяване</button>
   </nav>
 </header>
 
 <main class="wrap">
   <!-- НАЧАЛО -->
   <section class="view on" id="view-home">
-    <div class="hero">
-      <div class="hero-left">
-        <div>
-          <span class="pill blue anim-in">Ново · 3D конфигуратор на кухни</span>
-          <h1 class="anim-in" style="margin-top:14px">Кухня по мярка.<br><em>За минути, не за седмици.</em></h1>
-          <p class="lead anim-in">Въведи размерите и отбележи прозореца, водата и тока. Модулия подрежда шкафовете, показва ги в 3D и смята цената с реални материали.</p>
-          <ul class="checklist anim-in">
-            <li><span class="tick"><svg class="ic"><use href="#i-check"/></svg></span>Въведете размери и отбележете елементите</li>
-            <li><span class="tick"><svg class="ic"><use href="#i-check"/></svg></span>Гледайте в 3D в реално време</li>
-            <li><span class="tick"><svg class="ic"><use href="#i-check"/></svg></span>Автоматично изчисляване на цена, разкрой и оферта</li>
-          </ul>
-        </div>
-        <div class="brands anim-in" aria-label="Материали и обков"><span>EGGER</span><span>Kronospan</span><span>Kastamonu</span><span>Blum</span><span>GTV</span><span>Hettich</span></div>
-        <div class="row anim-in">
-          <button class="btn primary lg" data-go="builder">Създай своя кухня <svg class="ic"><use href="#i-arrow"/></svg></button>
-          <button class="btn lg" data-go="photo"><svg class="ic"><use href="#i-sparkles"/></svg>Кухня от снимка</button>
-          <button class="btn lg" data-go="bath"><svg class="ic"><use href="#i-bath"/></svg>Баня</button>
-          <button class="btn lg" data-go="interior"><svg class="ic"><use href="#i-sofa"/></svg>Интериор</button>
-        </div>
-      </div>
-      <div class="tablet anim-in">
-        <div class="tablet-screen">
-          <div class="tablet-bar"><span class="dots"><i></i><i></i><i></i></span>Модулия <span style="margin-left:auto;color:#61708f;font-weight:600">завърти с мишка или пръст</span></div>
-          <div class="live3d" id="hero3d"></div>
-          <div class="pricecard">
-            <span style="color:#61708f;font-weight:700">Цена в реално време</span>
-            <span class="p" id="heroPrice">—</span>
-            <div class="kv"><span>Плочи</span><b id="heroBoard">—</b></div>
-            <div class="kv"><span>Фронтове</span><b id="heroFront">—</b></div>
-            <div class="kv"><span>Обков</span><b id="heroHw">—</b></div>
-            <button class="btn primary sm" data-go="builder" style="margin-top:4px">Създай своя</button>
-          </div>
-        </div>
+    <div class="hero2">
+      <img class="hero2-img" src="img/hero.jpg" alt="Светла дневна с кухня от орех и остров от травертин" fetchpriority="high">
+      <div class="hero2-shade"></div>
+      <div class="hero2-text">
+        <span class="hero2-pill anim-in">Интериор и кухни по мярка с AI</span>
+        <h1 class="anim-in">Виж новия си дом,<br>преди да започнеш.</h1>
+        <p class="anim-in">Снимай кухнята или стаята. Модулия я преобразява реалистично, смята цената и я изпраща на майстори.</p>
+        <div class="row anim-in"><button class="btn primary lg" data-go="makeover"><svg class="ic"><use href="#i-sparkles"/></svg>Преобрази от снимка</button><button class="btn lg hero2-btn" data-go="builder">Кухня 3D по мярка</button></div>
       </div>
     </div>
-    <div class="features">
-      <button class="card feature anim-card" data-go="interior">
-        <span class="fi"><svg class="ic lg"><use href="#i-sofa"/></svg></span>
-        <h3>Интериор от една снимка</h3><p>Снимай стаята, избери стил и бюджет. AI прави 3 фотореалистични варианта и списък с продукти от IKEA, JYSK, eMAG и други в рамките на бюджета.</p>
-        <span class="go">Преобрази стаята <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
-      <button class="card feature anim-card" data-go="bath">
-        <span class="fi"><svg class="ic lg"><use href="#i-bath"/></svg></span>
-        <h3>Баня от снимка на мазилка</h3><p>Снимай банята. AI разчита размерите и изводите, подрежда душа и тоалетната, показва плочките по стени и смята м², лепило, фуга и цена.</p>
-        <span class="go">Направи банята <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
-      <button class="card feature anim-card" data-go="builder">
-        <span class="fi"><svg class="ic lg"><use href="#i-cube"/></svg></span>
-        <h3>Създай кухня за 5 стъпки</h3><p>Избери готова кухня или започни от нулата. Плъзгаш шкафовете, избираш цветовете и виждаш цената.</p>
-        <span class="go">Започни <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
-      <button class="card feature anim-card" data-go="cut">
-        <span class="fi"><svg class="ic lg"><use href="#i-cut"/></svg></span>
-        <h3>Автоматичен разкрой</h3><p>Списък с детайли, посока на шарката, кант по ръбовете и оптимизация върху плоча 2800×2070.</p>
-        <span class="go">Виж разкроя <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
-      <button class="card feature anim-card" data-go="ai">
-        <span class="fi"><svg class="ic lg"><use href="#i-sparkles"/></svg></span>
-        <h3>AI от скица или снимка</h3><p>Снимай стаята или нарисувай скица. AI разчита размерите и предлага три решения.</p>
-        <span class="go">Пробвай <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
-      <button class="card feature anim-card" data-go="ar">
-        <span class="fi"><svg class="ic lg"><use href="#i-ar"/></svg></span>
-        <h3>AR: виж мебелта в стаята</h3><p>Снимай стената и кухнята застава върху нея в реален размер. Или я постави на пода през AR.</p>
-        <span class="go">Стартирай AR <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
-      <button class="card feature anim-card" data-go="assembly">
-        <span class="fi"><svg class="ic lg"><use href="#i-qr"/></svg></span>
-        <h3>3D сглобяване с QR</h3><p>Всеки детайл има етикет. Сканираш го и гледаш анимация стъпка по стъпка с нужните винтове.</p>
-        <span class="go">Виж анимацията <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
-      <button class="card feature anim-card" data-go="offer">
-        <span class="fi"><svg class="ic lg"><use href="#i-file"/></svg></span>
-        <h3>Оферта и заявки</h3><p>PDF оферта с 3D снимка за клиента. Заявките от клиенти идват директно в цеха.</p>
-        <span class="go">Към офертата <svg class="ic"><use href="#i-arrow"/></svg></span>
-      </button>
+
+    <div class="sectiontitle"><h2>Какво искаш да направиш?</h2></div>
+    <div class="tiles">
+      <button class="tile big anim-card" data-go="makeover"><img src="img/st-walnut.jpg" alt="" loading="lazy"><span class="tl"><b>Преобрази кухнята</b><span>Качи снимки на кухнята си и избери нов стил, цвят и шкафове</span></span></button>
+      <button class="tile anim-card" data-go="builder"><img src="img/c-kitchen3d.jpg" alt="" loading="lazy"><span class="tl"><b>Кухня 3D по мярка</b><span>Размери, 3D и точна цена</span></span></button>
+      <button class="tile anim-card" data-go="interior"><img src="img/c-interior.jpg" alt="" loading="lazy"><span class="tl"><b>Интериор</b><span>3 варианта и списък за пазаруване</span></span></button>
+      <button class="tile anim-card" data-go="bath"><img src="img/c-bath.jpg" alt="" loading="lazy"><span class="tl"><b>Баня</b><span>Плочки, количества и санитария</span></span></button>
+      <button class="tile anim-card" data-go="ar"><img src="img/c-ar.jpg" alt="" loading="lazy"><span class="tl"><b>AR в стаята</b><span>Кухнята върху твоята стена</span></span></button>
+    </div>
+
+    <div class="sectiontitle"><h2>Три стъпки.</h2></div>
+    <div class="how">
+      <div class="card"><span class="hn">1</span><h3>Снимай</h3><p>Кухнята, стаята или банята. Може от няколко ъгъла.</p></div>
+      <div class="card"><span class="hn">2</span><h3>Избери стил</h3><p>Готов проект, своя снимка за вдъхновение или свои цветове. Коригираш с едно изречение.</p></div>
+      <div class="card"><span class="hn">3</span><h3>Получи цена</h3><p>Проект с размери, разкрой и оферта. Изпращаш запитване към майстори.</p></div>
+    </div>
+
+    <div class="sectiontitle"><h2>Тенденции 2026</h2><p>Натисни стил, за да го пробваш върху своята кухня.</p></div>
+    <div class="trends">
+      <button data-go="makeover" data-preset="walnut"><img src="img/st-walnut.jpg" alt="" loading="lazy"><b>Орех и кашмир</b></button>
+      <button data-go="makeover" data-preset="fluted"><img src="img/st-fluted.jpg" alt="" loading="lazy"><b>Рифелен дъб</b></button>
+      <button data-go="makeover" data-preset="sage"><img src="img/st-sage.jpg" alt="" loading="lazy"><b>Шалфей и дъб</b></button>
+      <button data-go="makeover" data-preset="japandi"><img src="img/st-japandi.jpg" alt="" loading="lazy"><b>Джапанди</b></button>
+      <button data-go="makeover" data-preset="graphite"><img src="img/st-graphite.jpg" alt="" loading="lazy"><b>Графит и мрамор</b></button>
+      <button data-go="makeover" data-preset="white"><img src="img/st-white.jpg" alt="" loading="lazy"><b>Скандинавско бяло</b></button>
+      <button data-go="makeover" data-preset="terracotta"><img src="img/st-terracotta.jpg" alt="" loading="lazy"><b>Глина</b></button>
+      <button data-go="makeover" data-preset="navy"><img src="img/st-navy.jpg" alt="" loading="lazy"><b>Тъмносиньо и месинг</b></button>
     </div>
 
     <div class="sectiontitle" id="download">
@@ -839,7 +877,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       </div>
       <aside class="bside">
         <div class="stage3d b3d" id="b3d"><div class="overlay-tl"><span class="glass">3D · завърти с мишка или пръст</span></div></div>
-        <div class="card pad bprice"><span class="muted small">Ориентировъчна цена с ДДС</span><b id="bPrice">—</b><span class="small muted" id="bSum"></span><button class="btn magic" data-real="builder"><svg class="ic"><use href="#i-sparkles"/></svg>Фотореалистичен рендер</button><button class="btn primary" data-go="request" style="margin-top:6px">Изпрати заявка към цех</button></div>
+        <div class="card pad bprice"><span class="muted small">Ориентировъчна цена с ДДС</span><b id="bPrice">…</b><span class="small muted" id="bSum"></span><button class="btn magic" data-real="builder"><svg class="ic"><use href="#i-sparkles"/></svg>Фотореалистичен рендер</button><button class="btn primary" data-go="request" style="margin-top:6px">Изпрати заявка към цех</button></div>
       </aside>
     </div>
   </section>
@@ -947,7 +985,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 
       <div class="stage">
         <div class="stage3d" id="view3d">
-          <div class="overlay-tl"><span class="glass" id="dimBadge">—</span></div>
+          <div class="overlay-tl"><span class="glass" id="dimBadge">…</span></div>
           <div class="overlay-br"><button class="glassbtn" data-real="project"><svg class="ic"><use href="#i-sparkles"/></svg>Реалистично</button><button class="glassbtn" id="btnResetCam"><svg class="ic"><use href="#i-rotate"/></svg>Изглед</button></div>
           <div class="overlay-bl" id="camThumbs"></div>
         </div>
@@ -960,13 +998,13 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 
       <aside class="card results">
         <h3>Резултати</h3>
-        <div class="rp big"><span>Цена</span><b id="resPrice">—</b></div>
-        <div class="rp"><span>Без ДДС</span><b id="resNet">—</b></div>
-        <div class="rp"><span>Модули</span><b id="resMods">—</b></div>
-        <div class="rp"><span>Плочи</span><b id="resSheets">—</b></div>
-        <div class="rp"><span>Кантиране</span><b id="resKant">—</b></div>
-        <div class="rp"><span>Плот</span><b id="resWt">—</b></div>
-        <div class="rp"><span>Монтаж</span><b id="resHours">—</b></div>
+        <div class="rp big"><span>Цена</span><b id="resPrice">…</b></div>
+        <div class="rp"><span>Без ДДС</span><b id="resNet">…</b></div>
+        <div class="rp"><span>Модули</span><b id="resMods">…</b></div>
+        <div class="rp"><span>Плочи</span><b id="resSheets">…</b></div>
+        <div class="rp"><span>Кантиране</span><b id="resKant">…</b></div>
+        <div class="rp"><span>Плот</span><b id="resWt">…</b></div>
+        <div class="rp"><span>Монтаж</span><b id="resHours">…</b></div>
         <button class="btn primary lg client-only" data-go="request">Поръчай сега <svg class="ic"><use href="#i-arrow"/></svg></button>
         <button class="btn primary lg pro-only" data-go="offer">Направи оферта <svg class="ic"><use href="#i-arrow"/></svg></button>
         <span class="small muted" id="sumline"></span>
@@ -993,6 +1031,50 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       <div class="stack">
         <div class="card pad" id="phResult"><div class="empty">Тук ще видиш разпознатия стил и цената на новата си кухня.</div></div>
         <div class="stage3d" id="ph3d" style="height:min(50vh,460px)"><div class="overlay-tl"><span class="glass">3D · новата ти кухня</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ПРЕОБРАЗИ -->
+  <section class="view" id="view-makeover">
+    <div class="split">
+      <div class="card pad stack">
+        <h2>Преобрази кухнята</h2>
+        <p class="muted" style="margin:0">Качи снимки на кухнята си. AI запазва стаята и размерите и сменя само шкафовете, плота, гърба и дръжките.</p>
+        <h3 class="moh">1. Твоята кухня</h3>
+        <div class="mophotos" id="moPhotos"></div>
+        <input type="file" id="moFile" accept="image/*" multiple hidden>
+        <h3 class="moh">2. Нов дизайн</h3>
+        <div class="seg" id="moSrc"><button data-s="preset">Готов проект</button><button data-s="insp">Моя снимка за вдъхновение</button></div>
+        <div id="moPresetBox"><div class="mopresets" id="moPresets"></div></div>
+        <div id="moInspBox" hidden>
+          <label class="drop phslot" for="moInspFile"><img id="moInspImg" hidden alt="Кухня, която харесваш"><span id="moInspTxt"><svg class="ic lg" style="stroke:var(--accent)"><use href="#i-sparkles"/></svg><br><b>Кухня, която харесваш</b><br><span class="small muted">от Pinterest, Instagram или каталог</span></span></label>
+          <input type="file" id="moInspFile" accept="image/*" hidden>
+        </div>
+        <div id="moTune" class="stack" style="gap:12px">
+          <h3 class="moh">3. Настрой</h3>
+          <div class="field"><span class="lbl">Долни шкафове</span><div class="mosw" id="moLow"></div></div>
+          <div class="field"><span class="lbl">Горни шкафове</span><div class="mosw" id="moUp"></div></div>
+          <div class="field"><span class="lbl">Фронтове</span><div class="seg" id="moFront"></div></div>
+          <div class="field"><span class="lbl">Плот</span><div class="seg" id="moTop"></div></div>
+          <div class="field"><span class="lbl">Гръб</span><div class="seg" id="moSplash"></div></div>
+          <div class="field"><span class="lbl">Дръжки</span><div class="seg" id="moHandle"></div></div>
+          <div class="field"><span class="lbl">Смесител и метал</span><div class="seg" id="moMetal"></div></div>
+          <div class="field"><span class="lbl">Горна част</span><div class="seg" id="moUppers"></div></div>
+        </div>
+        <label class="switch"><span>Запази размерите и мястото<br><span class="small muted">реалистично за твоята стая</span></span><input type="checkbox" id="moKeep"></label>
+        <label class="switch"><span>Подреди плота<br><span class="small muted">маха вещите от плота и пода</span></span><input type="checkbox" id="moTidy"></label>
+        <div class="field"><label for="moNotes">Желания (по желание)</label><textarea id="moNotes" rows="2" placeholder="Например: искам място за съдомиялна"></textarea></div>
+        <button class="btn primary lg" id="moRun"><svg class="ic"><use href="#i-sparkles"/></svg>Преобрази</button>
+        <div class="aistatus muted" id="moStatus"></div>
+      </div>
+      <div class="stack">
+        <div id="moResults" class="stack"></div>
+        <div class="card pad row moafter" id="moAfter" hidden>
+          <div style="flex:1;min-width:220px"><b>Харесва ли ти?</b><div class="small muted">Пренеси дизайна в 3D проект с точна цена или изпрати запитване.</div></div>
+          <button class="btn primary" id="moToProject"><svg class="ic"><use href="#i-cube"/></svg>Виж цена и 3D</button>
+          <button class="btn" id="moToReq">Изпрати запитване</button>
+        </div>
       </div>
     </div>
   </section>
@@ -1093,7 +1175,7 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
         <div class="card pad stack">
           <div class="row" style="justify-content:space-between">
             <div class="seg" id="baTab"><button data-t="plan" aria-pressed="true">План</button><button data-t="3d">3D</button><button data-t="walls">Плочки по стени</button></div>
-            <span class="big" id="baTotal">—</span>
+            <span class="big" id="baTotal">…</span>
           </div>
           <div id="baVariants" class="bavars"></div>
           <div id="baPlanBox" class="baplan"></div>
@@ -1269,8 +1351,8 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
       <div class="split" style="grid-template-columns:minmax(0,1fr) 360px">
         <div class="stack">
           <div class="stage3d" id="asm3d" style="height:min(58vh,540px)">
-            <div class="overlay-tl"><span class="glass" id="asmTitle">—</span></div>
-            <div class="stepbadge" id="asmStepBadge">—</div>
+            <div class="overlay-tl"><span class="glass" id="asmTitle">…</span></div>
+            <div class="stepbadge" id="asmStepBadge">…</div>
             <div class="screwbadge" id="asmScrew" hidden></div>
             <div class="player">
               <button id="asmPrev" aria-label="Предишна стъпка"><svg class="ic"><use href="#i-prev"/></svg></button>
@@ -1370,4 +1452,5 @@ model-viewer { width: 100%; height: 440px; background: radial-gradient(circle, #
 <script src="js/render.js"></script>
 <script src="js/bath.js"></script>
 <script src="js/interior.js"></script>
+<script src="js/makeover.js"></script>
 <script src="js/platform.js"></script>

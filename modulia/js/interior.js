@@ -1,4 +1,4 @@
-/* Модулия — Интериор.
+/* Модулия: Интериор.
    Снимка на стая → 3 фотореалистични варианта на интериорния дизайн в същата стая
    (същите стени, прозорци, врати, таван и пропорции) → списък за пазаруване от български магазини в рамките на бюджета. */
 (function () {
@@ -99,7 +99,7 @@ Reply with ONLY this JSON (Bulgarian text):
     $('#inThumbs').hidden = !PH.photoUrl;
     $('#inThumbs').innerHTML = PH.vars
       .map((v, i) => {
-        const body = !v ? '<span class="muted small">—</span>' : v.img ? `<img src="${v.img}" alt="Вариант ${i + 1}">` : v.err ? `<span class="small">${esc(v.err)}</span>` : `<span class="spinner"></span><span class="small muted">${esc(v.msg || 'AI проектира…')}</span>`;
+        const body = !v ? '<span class="muted small">…</span>' : v.img ? `<img src="${v.img}" alt="Вариант ${i + 1}">` : v.err ? `<span class="small">${esc(v.err)}</span>` : `<span class="spinner"></span><span class="small muted">${esc(v.msg || 'AI проектира…')}</span>`;
         return `<button class="inthumb${v && !v.img && !v.err ? ' wait' : ''}" data-i="${i}" aria-pressed="${PH.sel === i}"><span class="ith">${body}</span><span class="small"><b>Вариант ${i + 1}</b> · ${esc(style().bg[i])}</span></button>`;
       })
       .join('');
@@ -159,7 +159,7 @@ Reply with ONLY this JSON (Bulgarian text):
     renderShop();
     PH.sel = 0;
     const t0 = Date.now();
-    st.innerHTML = '<span class="spinner"></span> AI прави 3 варианта в твоята стая. Обикновено 20–60 секунди.';
+    st.innerHTML = '<span class="spinner"></span> AI прави 3 варианта в твоята стая. Обикновено 20 до 60 секунди.';
     await Promise.all([0, 1, 2].map((i) => new Promise((ok) => setTimeout(ok, i * 1200)).then(() => makeVariant(i))));
     const ok = PH.vars.filter((v) => v && v.img).length;
     const first = PH.vars.findIndex((v) => v && v.img);
@@ -252,11 +252,11 @@ Reply with ONLY this JSON (Bulgarian text):
     let html = '';
     PH.shop.groups.forEach((g, gi) => {
       const gt = g.items.reduce((s, it) => s + (it.on ? it.qty * it.price : 0), 0);
-      html += `<h3 class="ingh">${gi + 1}. ${esc(g.name)} — ${M.eur(gt)}</h3><div class="tablewrap"><table class="t intable"><thead><tr><th></th><th>Продукт и линк</th><th>Магазин</th><th class="num">Кол.</th><th class="num">Общо</th></tr></thead><tbody>`;
+      html += `<h3 class="ingh">${gi + 1}. ${esc(g.name)} · ${M.eur(gt)}</h3><div class="tablewrap"><table class="t intable"><thead><tr><th></th><th>Продукт и линк</th><th>Магазин</th><th class="num">Кол.</th><th class="num">Общо</th></tr></thead><tbody>`;
       html += g.items
         .map(
           (it, ii) => `<tr class="${it.on ? '' : 'off'}"><td><input type="checkbox" data-g="${gi}" data-i="${ii}" ${it.on ? 'checked' : ''} aria-label="Включи ${esc(it.name)}"></td>
-          <td class="wrap"><a href="${directUrl(it)}" target="_blank" rel="noopener"><b>${esc(it.name)}</b> ↗</a>${it.detail ? ` <span class="muted">— ${esc(it.detail)}</span>` : ''}<div class="small"><a class="muted" href="${searchUrl(it)}" target="_blank" rel="noopener">още резултати</a>${it.priority === 3 ? ' · <span class="muted">по желание</span>' : ''}</div></td>
+          <td class="wrap"><a href="${directUrl(it)}" target="_blank" rel="noopener"><b>${esc(it.name)}</b> ↗</a>${it.detail ? ` <span class="muted">· ${esc(it.detail)}</span>` : ''}<div class="small"><a class="muted" href="${searchUrl(it)}" target="_blank" rel="noopener">още резултати</a>${it.priority === 3 ? ' · <span class="muted">по желание</span>' : ''}</div></td>
           <td>${esc(STORES[it.store])}</td><td class="num">${it.qty}</td><td class="num">${M.fmt(it.qty * it.price)} €</td></tr>`
         )
         .join('');
@@ -288,7 +288,7 @@ Reply with ONLY this JSON (Bulgarian text):
     PH.shop.groups.forEach((g) => {
       const its = g.items.filter((it) => it.on);
       if (!its.length) return;
-      s += `\n${g.name}\n` + its.map((it) => `- ${it.name}${it.detail ? ' (' + it.detail + ')' : ''} × ${it.qty} — ${M.fmt(it.qty * it.price)} € · ${STORES[it.store]} · ${searchUrl(it)}`).join('\n') + '\n';
+      s += `\n${g.name}\n` + its.map((it) => `- ${it.name}${it.detail ? ' (' + it.detail + ')' : ''} × ${it.qty} · ${M.fmt(it.qty * it.price)} € · ${STORES[it.store]} · ${searchUrl(it)}`).join('\n') + '\n';
     });
     return s;
   }

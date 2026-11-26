@@ -1,4 +1,4 @@
-/* Модулия — 3D сцена (three.js r147). Мерните единици в сцената са метри.
+/* Модулия: 3D сцена (three.js r147). Мерните единици в сцената са метри.
    Реалистичен изглед: отражения (RoomEnvironment), ACES тонове, сенки, LED под горните шкафове,
    облицовка на стената, декорация, вечерен режим, камери с плавни преходи, анимирано сглобяване. */
 (function () {
@@ -1032,7 +1032,7 @@
       mtl.ghostFront = new THREE.MeshStandardMaterial({ color: '#cfd3cd', transparent: true, opacity: 0.1, depthWrite: false });
       const steps = res.steps;
       const step = Math.max(0, Math.min(steps.length - 1, opts.step || 0));
-      // първа стъпка за всеки детайл (без стъпка 0 — подреждане)
+      // първа стъпка за всеки детайл (без стъпка 0 · подреждане)
       const first = res.parts.map((_, i) => {
         for (let s = 1; s < steps.length; s++) if (steps[s].p.includes(i)) return s;
         return steps.length - 1;

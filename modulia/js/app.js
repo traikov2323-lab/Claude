@@ -1,4 +1,4 @@
-/* Модулия — интерфейс: състояние, проект, чертеж, материали, модули, разкрой, оферта, цени. */
+/* Модулия: интерфейс: състояние, проект, чертеж, материали, модули, разкрой, оферта, цени. */
 (function () {
   const M = (window.M = window.M || {});
   const $ = (s, r = document) => r.querySelector(s);
@@ -64,7 +64,7 @@
     project: store.get('project', null) || M.defaultProject(),
     pricesV: store.get('prices', null),
     catalogPrices: store.get('catalogPrices', null),
-    profile: store.get('profile', { name: 'Мебелен цех', city: 'София', phone: '', email: '', lead: '4–6 седмици' }),
+    profile: store.get('profile', { name: 'Мебелен цех', city: 'София', phone: '', email: '', lead: '4 до 6 седмици' }),
     mode: store.get('mode', 'client'),
     view: 'home',
     selFeature: null,
@@ -321,7 +321,7 @@
       const b = document.createElement('button');
       b.className = 'feat';
       b.setAttribute('aria-pressed', S.selFeature === f.id);
-      const info = f.type === 'window' ? `${f.x}–${f.x + f.w}` : `x ${f.x}`;
+      const info = f.type === 'window' ? `${f.x} до ${f.x + f.w}` : `x ${f.x}`;
       b.innerHTML = `<span class="dot" style="background:${FEAT[f.type].color}"></span><span>${FEAT[f.type].label}</span><span class="pill">${f.wall}</span><span class="mono">${info}</span>`;
       b.addEventListener('click', () => {
         S.selFeature = S.selFeature === f.id ? null : f.id;
@@ -605,7 +605,7 @@
           });
           const div = document.createElement('div');
           div.className = 'modrow' + (S.selModule === m.id ? ' sel' : '');
-          div.innerHTML = `<span class="code">${m.code || '—'}</span>
+          div.innerHTML = `<span class="code">${m.code || '…'}</span>
             <select aria-label="Тип">${okTypes.map((t) => `<option value="${t}" ${t === m.type ? 'selected' : ''}>${M.typeLabel(t)}</option>`).join('')}</select>
             <input type="number" aria-label="Ширина" value="${m.w}" min="50" max="1200" step="1">
             <button class="iconbtn" aria-label="Премахни" title="Премахни">✕</button>`;
@@ -673,7 +673,7 @@
       ['Кант 0,8 мм', M.fmt(S.pr.edges.e08, 1) + ' м'],
       ['Кант 2 мм', M.fmt(S.pr.edges.e2, 1) + ' м'],
       ['Листа HDF', (S.groups.hdf ? S.groups.hdf.nest.sheets.length : 0)],
-      ['Фронтове МДФ', mdf ? M.fmt(mdf.area, 2) + ' м²' : '—'],
+      ['Фронтове МДФ', mdf ? M.fmt(mdf.area, 2) + ' м²' : '…'],
       ['Детайли', S.built.parts.length],
       ['Обков', M.eur(S.pr.parts.hw)],
     ]
@@ -712,7 +712,7 @@
           .join('')
       : '<div class="empty">Няма детайли за разкрой.</div>';
     // таблица
-    const kant = (v) => (v === 2 ? '<span class="kant k2">2</span>' : v === 0.8 ? '<span class="kant k08">0,8</span>' : '<span class="kant">—</span>');
+    const kant = (v) => (v === 2 ? '<span class="kant k2">2</span>' : v === 0.8 ? '<span class="kant k08">0,8</span>' : '<span class="kant">…</span>');
     const rows = S.built.parts.map((p) => {
       const gr = Object.values(S.groups).find((x) => x.items.some((i) => i.pid === p.pid));
       return `<tr><td class="mono">${p.pid}</td><td>${esc(p.name)}</td><td class="mono">${esc(p.module)}</td><td>${esc(gr ? gr.label : '')}</td><td class="num">${Math.round(p.L)}</td><td class="num">${Math.round(p.W)}</td><td><span class="dir">${gr && gr.grain && p.grain ? '↕' : '↔'}</span></td><td>${kant(p.edges.L1)} ${kant(p.edges.L2)}</td><td>${kant(p.edges.W1)} ${kant(p.edges.W2)}</td></tr>`;
@@ -761,11 +761,11 @@
     return `<div class="paper" id="offerPaper">
       <div class="ph"><div><h1>Оферта</h1><div class="meta">№ ${no} · ${date} · валидна 14 дни</div></div>
       <div class="meta" style="text-align:right"><b style="color:#1b1e1c;font-size:14px">${esc(pf.name)}</b><br>${esc(pf.city)}${pf.phone ? ' · ' + esc(pf.phone) : ''}${pf.email ? '<br>' + esc(pf.email) : ''}</div></div>
-      <div class="two"><div><h3>Клиент</h3>${esc($('#offerClient') ? $('#offerClient').value : '') || '—'}</div><div><h3>Обект</h3>${r.shape === 'L' ? 'Г-образна кухня' : 'Права кухня'} · стена A ${r.wallA} мм${r.shape === 'L' ? ' · стена B ' + r.wallB + ' мм' : ''} · височина ${r.height} мм</div></div>
+      <div class="two"><div><h3>Клиент</h3>${esc($('#offerClient') ? $('#offerClient').value : '') || '…'}</div><div><h3>Обект</h3>${r.shape === 'L' ? 'Г-образна кухня' : 'Права кухня'} · стена A ${r.wallA} мм${r.shape === 'L' ? ' · стена B ' + r.wallB + ' мм' : ''} · височина ${r.height} мм</div></div>
       ${shot ? `<img class="shot" src="${shot}" alt="3D изглед на кухнята">` : ''}
       <div class="two">
         <div><h3>Материали</h3>Корпус: ПДЧ 18 мм ${esc(b.brand + ' ' + b.name)}<br>Фронтове: ${esc(front)}<br>Плот: ${esc(M.worktop(m.worktop).name)}</div>
-        <div><h3>Обков</h3>${esc(hwb.name)} — ${esc(hwb.note)}<br>Дръжки: ${esc(M.handle(m.handle).name)}<br>Кант: 0,8 мм корпус${ft.painted ? '' : ', 2 мм фронтове'}</div>
+        <div><h3>Обков</h3>${esc(hwb.name)} · ${esc(hwb.note)}<br>Дръжки: ${esc(M.handle(m.handle).name)}<br>Кант: 0,8 мм корпус${ft.painted ? '' : ', 2 мм фронтове'}</div>
       </div>
       <h3>Спецификация</h3>
       <table><thead><tr><th>Код</th><th>Описание</th><th class="r">Ш×В×Д, мм</th><th class="r">Цена, €</th></tr></thead><tbody>${rows}</tbody></table>
@@ -774,7 +774,7 @@
         <tr><td>ДДС ${M.prices().vat.v}%</td><td class="r">${M.eur(vat)}</td></tr>
         <tr class="g"><td>Общо</td><td class="r">${M.eur(sum + vat)}</td></tr>
       </tbody></table>
-      <div class="two"><div><h3>Срок</h3>${esc(pf.lead || '—')} след оглед и капаро</div><div><h3>Не са включени</h3>Уреди, мивка, смесител, електро- и ВиК работи.</div></div>
+      <div class="two"><div><h3>Срок</h3>${esc(pf.lead || '…')} след оглед и капаро</div><div><h3>Не са включени</h3>Уреди, мивка, смесител, електро- и ВиК работи.</div></div>
       <p class="fine">Цената е ориентировъчна до оглед на място. Размерите се уточняват при оглед. Изготвено с Модулия.</p>
     </div>`;
   };
@@ -916,7 +916,7 @@
     const hv = M.heroView;
     const P = S.project;
     if (hv && S.built) hv.setProject(P, S.built, { look: { spin: true, pendant: false } });
-    if (S.pr) {
+    if (S.pr && $('#heroBoard')) {
       M.countTo($('#heroPrice'), S.pr.gross);
       const b = M.board(P.mats.carcass);
       const ft = M.frontType(P.mats.frontType);
@@ -962,7 +962,7 @@
     bindRail();
     bindLook();
     try {
-      M.heroView = new M.View3D($('#hero3d'), { lowRes: true, bg: '#eef1f6' });
+      if ($('#hero3d')) M.heroView = new M.View3D($('#hero3d'), { lowRes: true, bg: '#eef1f6' });
     } catch (e) {}
     try {
       view3d = M.view3d = new M.View3D($('#view3d'));
